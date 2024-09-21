@@ -1,37 +1,39 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Drawer } from 'expo-router/drawer';
+import { Link, usePathname } from 'expo-router';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Feather } from '@expo/vector-icons';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
+export default function Layout() {
+  const path = usePathname();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen
+          name="index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Home',
+            title: 'MeTracker',
+          }}
+        />
+        <Drawer.Screen
+          name="caffeine" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Caffeine Tracker',
+            title: 'Caffeine Tracker',
+          }}
+        />
+        <Drawer.Screen
+          name="toilet" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Toilet logs',
+            title: 'Toilet logs',
+            headerRight: () => (path.includes("logs")?
+            <Link href="/toilet/add" style={{padding:10}}><Feather name="plus" size={24} color="black" /></Link>
+            :<Link href="/toilet/logs" style={{padding:10}}><Feather name="file-text" size={24} color="black" /></Link>),
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }
