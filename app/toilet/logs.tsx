@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import * as SQLite from 'expo-sqlite';
 import { useState } from "react";
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from "expo-router";
+import { Href, useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 
 
@@ -27,7 +27,7 @@ const LogCard = ({log}: {log: Log}) => {
 
   return (
     <TouchableOpacity activeOpacity={1} onPress={()=>{
-      const url:string=`/toilet/details?time=${log.time}&urination=${log.urination}&urinationColor=${log.urinationColor?log.urinationColor.replace("#",""):null}&isPainUrination=${log.isPainUrination}&isBM=${log.isBM}&BMColor=${log.BMColor?log.BMColor.replace("#",""):null}&BMshape=${log.BMshape}&isPainBM=${log.isPainBM}&isSmell=${log.isSmell}&photo=${log.photo}&notes=${log.notes}`;
+      const url:Href=`/toilet/details?time=${log.time}&urination=${log.urination}&urinationColor=${log.urinationColor?log.urinationColor.replace("#",""):null}&isPainUrination=${log.isPainUrination}&isBM=${log.isBM}&BMColor=${log.BMColor?log.BMColor.replace("#",""):null}&BMshape=${log.BMshape}&isPainBM=${log.isPainBM}&isSmell=${log.isSmell}&photo=${log.photo}&notes=${log.notes}`;
       console.log(url);
       router.navigate(url);
       }}>
@@ -72,7 +72,7 @@ export default function Logs() {
   const [logs, setLogs] = useState([] as Log[]);
   const fetchData = async () => {
     const db = await SQLite.openDatabaseAsync('MeTracker');
-    await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT);");
+    await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
     const allRows = await db.getAllAsync('SELECT * FROM toilet');
     setLogs(allRows as Log[]);
     console.log(allRows);

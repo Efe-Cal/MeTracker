@@ -86,14 +86,14 @@ export default function Add(){
         ToastAndroid.show("Saved", ToastAndroid.SHORT);
 
     }
-    
+    //TODO: Add ScrollView
     return (
         <View
             style={{
             flex: 1,
             padding:20,
             justifyContent: "flex-start",
-            flexDirection: 'column',
+            flexDirection: 'column'
         }}
         >
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -193,10 +193,11 @@ export default function Add(){
                 borderRadius:10,
                 textAlignVertical:"top"}} 
                 placeholder="Note" editable value={note} onChangeText={text => setNote(text)} multiline={true} numberOfLines={3} />
-
-            <TouchableOpacity onPress={save}style={{backgroundColor:"#4630EB",padding:10,marginTop:20,borderRadius:10}}>
+            <View style={{flex:1, alignItems:"center"}}>
+            <TouchableOpacity onPress={save} style={{backgroundColor:"#4630EB",padding:10,marginTop:20,borderRadius:10,position:"absolute",bottom:0,width:"100%"}}>
                 <Text style={{color:"white",textAlign:"center",fontSize:20}}>Save</Text>
             </TouchableOpacity>
+            </View>
         </View>
     )
 }

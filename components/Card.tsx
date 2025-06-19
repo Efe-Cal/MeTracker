@@ -20,8 +20,7 @@ export function Card({ children,style }: CardProps) {
       justifyContent:"space-between",
       alignItems:"center",
       margin:5,
-      display:"flex",
-      flex:1
+      display:"flex"
       
   },style]}>
       {children}

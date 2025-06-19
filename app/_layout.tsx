@@ -21,6 +21,9 @@ export default function Layout() {
           options={{
             drawerLabel: 'Caffeine Tracker',
             title: 'Caffeine Tracker',
+            headerRight: () => (!path.includes("add")?
+            <Link href="/caffeine/add" style={{padding:10}}><Feather name="plus" size={24} color="black" /></Link>
+            :<Link href="/caffeine/logs" style={{padding:10}}><Feather name="file-text" size={24} color="black" /></Link>),
           }}
         />
         <Drawer.Screen
