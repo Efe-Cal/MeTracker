@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useEffect, useState } from 'react';
 import * as SQLite from 'expo-sqlite';
@@ -34,16 +34,11 @@ export default function Add() {
     }, []);
 
     return (
-        <View style={{
-            flex: 1,
-            padding:20,
-            justifyContent: "flex-start",
-            flexDirection: 'column',
-        }}>
+        <View style={styles.container}>
             <Dropdown
                 data={dropdownData}
                 value={value}
-                style={{height: 50, borderColor: 'gray', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10}}
+                style={styles.dropdown}
                 labelField="label"
                 valueField="value"
                 onChange={item =>{
@@ -60,22 +55,21 @@ export default function Add() {
                 }}
             />
             {showCreate && 
-            <View style={{marginTop:20, flex:1}}>
+            <View style={styles.createView}>
                 <TextInput 
                     placeholder="Name"
                     value={name}
                     onChangeText={setName}
-                    style={{marginTop:10,borderWidth:1,padding:5}}
+                    style={styles.input}
                 />
                 <TextInput 
                     placeholder="Caffeine (mg)"
                     value={caffeine}
                     onChangeText={setCaffeine}
                     keyboardType="numeric"
-                    style={{marginTop:10,borderWidth:1,padding:5}}
+                    style={styles.input}
                 />
-                <TouchableOpacity style={{position:"absolute", bottom:0, width:"100%", borderRadius:10,
-                    backgroundColor:"#4630EB", padding:10, marginTop:10, alignItems:"center"}}
+                <TouchableOpacity style={styles.saveButton}
                     onPress={async () => {
                         const db = await SQLite.openDatabaseAsync('MeTracker');
                         await db.runAsync('INSERT INTO caffeine_drinks (name, caffeine) VALUES (?, ?)', [name, parseInt(caffeine)]);
@@ -84,14 +78,13 @@ export default function Add() {
                         setCaffeine('');
                         setName('');
                 }}>
-                    <Text style={{fontSize:20, fontWeight:"bold",color:"white"}}>Save</Text>
+                    <Text style={styles.saveButtonText}>Save</Text>
                 </TouchableOpacity>
             </View>
             }
             {showAdd &&
-            <View style={{marginTop:20}}>
-                <TouchableOpacity style={{width:"100%",
-                    backgroundColor:"#4630EB", padding:10, marginTop:10, alignItems:"center",borderRadius:10}}
+            <View style={styles.addView}>
+                <TouchableOpacity style={styles.addButton}
                     onPress={ async () => {
                         if(selectedDrink){
                             const db = await SQLite.openDatabaseAsync('MeTracker');
@@ -102,7 +95,7 @@ export default function Add() {
                             router.navigate("/caffeine/logs")
                         }
                 }}>
-                    <Text style={{fontSize:20, fontWeight:"bold",color:"white"}}>Add</Text>
+                    <Text style={styles.saveButtonText}>Add</Text>
                 </TouchableOpacity>
             </View>
             }
@@ -110,3 +103,54 @@ export default function Add() {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    addButton: {
+        alignItems: "center",
+        backgroundColor: "#4630EB",
+        borderRadius: 10,
+        marginTop: 10,
+        padding: 10,
+        width: "100%"
+    },
+    addView: {
+        marginTop: 20
+    },
+    container: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: "flex-start",
+        padding: 20
+    },
+    createView: {
+        flex: 1,
+        marginTop: 20
+    },
+    dropdown: {
+        borderColor: 'gray',
+        borderRadius: 5,
+        borderWidth: 1,
+        height: 50,
+        paddingHorizontal: 10
+    },
+    input: {
+        borderWidth: 1,
+        marginTop: 10,
+        padding: 5
+    },
+    saveButton: {
+        alignItems: "center",
+        backgroundColor: "#4630EB",
+        borderRadius: 10,
+        bottom: 0,
+        marginTop: 10,
+        padding: 10,
+        position: "absolute",
+        width: "100%"
+    },
+    saveButtonText: {
+        color: "white",
+        fontSize: 20,
+        fontWeight: "bold"
+    }
+});

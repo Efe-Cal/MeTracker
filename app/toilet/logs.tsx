@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { Card } from "@/components/Card";
 import { useCallback } from "react";
 import * as SQLite from 'expo-sqlite';
@@ -31,35 +31,35 @@ const LogCard = ({log}: {log: Log}) => {
       console.log(url);
       router.navigate(url);
       }}>
-    <Card style={{justifyContent:"space-between",alignItems:"flex-start"}}>
-      <View style={{flex:1,flexDirection:"column",margin:5}}>
-        <Text style={{fontWeight:"bold",fontSize:22}}>{date}</Text>
-        <Text style={{fontSize:16}}>{log.time.split(" ")[1].substring(0,5)}</Text>
-        <Text style={{marginTop:5}}>{log.notes}</Text>
+    <Card style={styles.card}>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardDate}>{date}</Text>
+        <Text style={styles.cardTime}>{log.time.split(" ")[1].substring(0,5)}</Text>
+        <Text style={styles.cardNotes}>{log.notes}</Text>
       </View>
-      <View style={{height:120}}>
+      <View style={styles.logView}>
         {
           log.urination?
-          <View style={{flexDirection:"row-reverse",flex:1}}>
-            <View style={{borderRadius:5,width:12,borderWidth:1,margin:4,backgroundColor:log.urinationColor}}></View>
+          <View style={styles.iconRow}>
+            <View style={[styles.colorBox, {backgroundColor:log.urinationColor}]}></View>
             {log.isPainUrination?
-            <Ionicons name="warning-outline" size={24} color="black" style={{alignSelf:"center", paddingHorizontal:6}}/>
+            <Ionicons name="warning-outline" size={24} color="black" style={styles.icon}/>
             :null}
           </View>
-          :<View style={{flex:1}}></View>
+          :<View style={styles.iconRowEmpty}></View>
         }
         {
           log.isBM?
-            <View style={{flexDirection:"row-reverse",flex:1}}>
-              <View style={{borderRadius:5,width:12,borderWidth:1,margin:4,backgroundColor:log.BMColor}}></View>
+            <View style={styles.iconRow}>
+              <View style={[styles.colorBox, {backgroundColor:log.BMColor}]}></View>
               {log.isPainBM?
-              <Ionicons name="warning-outline" size={24} color="black" style={{alignSelf:"center", paddingHorizontal:6}}/>
+              <Ionicons name="warning-outline" size={24} color="black" style={styles.icon}/>
               :null}
               {log.isSmell?
-              <Ionicons name="cloud" size={24} color="green" style={{alignSelf:"center", paddingHorizontal:6}}/>
+              <Ionicons name="cloud" size={24} color="green" style={styles.icon}/>
               :null}
             </View>
-            :<View style={{flex:1}}></View>
+            :<View style={styles.iconRowEmpty}></View>
         }
       </View>
       
@@ -86,26 +86,71 @@ export default function Logs() {
 
   console.log(logs);
   return (
-    <View
-      style={{
-        flex: 1,
-        padding:15,
-        justifyContent: "flex-start",
-        alignItems: "center"
-      }}
-    >
+    <View style={styles.container}>
       {/* <TouchableOpacity onPress={()=>fetchData()}><Text>Refresh</Text></TouchableOpacity> */}
       {logs.length>0?
       <ScrollView
         showsHorizontalScrollIndicator={false}
-    		style={{flex:1,display:"flex",width:"100%"}}
+        style={styles.scrollView}
         >
         {logs.reverse().map((log, index) => (
           <LogCard key={index} log={log} />
         ))}
-
       </ScrollView>
       :<Text>No Logs</Text>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    alignItems: "flex-start",
+    justifyContent: "space-between"
+  },
+  cardContent: {
+    flex: 1,
+    flexDirection: "column",
+    margin: 5
+  },
+  cardDate: {
+    fontSize: 22,
+    fontWeight: "bold"
+  },
+  cardNotes: {
+    marginTop: 5
+  },
+  cardTime: {
+    fontSize: 16
+  },
+  colorBox: {
+    borderRadius: 5,
+    borderWidth: 1,
+    margin: 4,
+    width: 12
+  },
+  container: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "flex-start",
+    padding: 15
+  },
+  icon: {
+    alignSelf: "center",
+    paddingHorizontal: 6
+  },
+  iconRow: {
+    flex: 1,
+    flexDirection: "row-reverse"
+  },
+  iconRowEmpty: {
+    flex: 1
+  },
+  logView: {
+    height: 120
+  },
+  scrollView: {
+    display: "flex",
+    flex: 1,
+    width: "100%"
+  }
+});

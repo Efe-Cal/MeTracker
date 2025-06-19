@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { View, Text, TouchableOpacity, Image, ToastAndroid, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ToastAndroid, Alert, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { router } from 'expo-router';
@@ -30,26 +30,13 @@ export default function Details(){
     const date = new Date(log.time).toDateString();
     return (
         <View>
-            <View style={{ 
-                marginHorizontal:10,
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                padding: 10, 
-                borderBottomWidth: 1, 
-                borderBottomColor: '#ddd',
-                
-            }}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={()=>{
                     router.back();
                 }}>
                     <Ionicons name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={{ 
-                    fontSize: 20, 
-                    marginLeft: 10, 
-                    fontWeight: 'bold',
-                    color: '#333'
-                }}>
+                <Text style={styles.headerTitle}>
                     {date}
                 </Text>
                 <View style={{flex:1}}></View>
@@ -73,64 +60,124 @@ export default function Details(){
             </View>
             {/* Urination */}
             {log.urination=="1"?
-            <View style={{marginTop:-10,padding:20}}>
-                <View style={{borderBottomWidth:1}}>
-                    <Text style={{fontSize: 24, fontWeight: 'bold'}}>Urination</Text>
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionHeaderText}>Urination</Text>
                 </View>
-                <View style={{flexDirection:"row",marginTop:10,justifyContent:"space-between",paddingHorizontal:10,alignContent:"center"}}>
-                    <Text style={{fontSize:20}}>Color</Text>
-                    <View style={{borderRadius:5,width:25,height:25,borderWidth:1,margin:4,backgroundColor:"#"+log.urinationColor}}></View>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>Color</Text>
+                    <View style={[styles.colorBox, {backgroundColor:"#"+log.urinationColor}]}></View>
                 </View>
-                <View style={{flexDirection:"row",marginTop:10,justifyContent:"space-between",paddingHorizontal:10,alignContent:"center"}}>
-                    <Text style={{fontSize:20}}>Pain</Text>
-                    <Text style={{fontSize:20}}>{log.isPainUrination=="1"?"Yes":"No"}</Text>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>Pain</Text>
+                    <Text style={styles.rowLabel}>{log.isPainUrination=="1"?"Yes":"No"}</Text>
                 </View>
             </View>
             :null}
             {/* BM */}
             {log.isBM=="1"?
-            <View style={{marginTop:-10,padding:20}}>
-                <View style={{borderBottomWidth:1}}>
-                    <Text style={{fontSize: 24, fontWeight: 'bold'}}>Bowel Movement</Text>
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionHeaderText}>Bowel Movement</Text>
                 </View>
-                <View style={{flexDirection:"row",marginTop:10,justifyContent:"space-between",paddingHorizontal:10,alignContent:"center"}}>
-                    <Text style={{fontSize:20}}>Color</Text>
-                    <View style={{borderRadius:5,width:25,height:25,borderWidth:1,margin:4,backgroundColor:"#"+log.BMColor}}></View>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>Color</Text>
+                    <View style={[styles.colorBox, {backgroundColor:"#"+log.BMColor}]}></View>
                 </View>
-                <View style={{flexDirection:"row",marginTop:10,justifyContent:"space-between",paddingHorizontal:10,alignContent:"center"}}>
-                    <Text style={{fontSize:20}}>Pain</Text>
-                    <Text style={{fontSize:20}}>{log.isPainBM=="1"?"Yes":"No"}</Text>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>Pain</Text>
+                    <Text style={styles.rowLabel}>{log.isPainBM=="1"?"Yes":"No"}</Text>
                 </View>
-                <View style={{flexDirection:"row",marginTop:10,justifyContent:"space-between",paddingHorizontal:10,alignContent:"center"}}>
-                    <Text style={{fontSize:20}}>Foul-Smell</Text>
-                    <Text style={{fontSize:20}}>{log.isSmell=="1"?"Yes":"No"}</Text>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>Foul-Smell</Text>
+                    <Text style={styles.rowLabel}>{log.isSmell=="1"?"Yes":"No"}</Text>
                 </View>
             </View>
             :null}
 
             {/* Notes */}
             {log.notes.length>0?
-            <View style={{marginTop:-10,padding:20}}>
-                <View style={{borderBottomWidth:1}}>
-                    <Text style={{fontSize: 24, fontWeight: 'bold'}}>Notes</Text>
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionHeaderText}>Notes</Text>
                 </View>
-                <View style={{marginTop:10,paddingHorizontal:10}}>
-                    <Text style={{fontSize:20}}>{log.notes}</Text>
+                <View style={styles.notesView}>
+                    <Text style={styles.notesText}>{log.notes}</Text>
                 </View>
             </View>
             :null}
 
             {/* Photo */}
             {log.photo.length>0?
-            <View style={{marginTop:-10,padding:20}}>
-                <View style={{borderBottomWidth:1}}>
-                    <Text style={{fontSize: 24, fontWeight: 'bold'}}>Photo</Text>
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionHeaderText}>Photo</Text>
                 </View>
-                <View style={{marginTop:10,paddingHorizontal:10}}>
-                    <Image source={{uri:log.photo}} style={{width:300,height:300}}/>
+                <View style={styles.photoView}>
+                    <Image source={{uri:log.photo}} style={styles.photo} />
                 </View>
             </View>
             :null}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    colorBox: {
+        borderRadius: 5,
+        borderWidth: 1,
+        height: 25,
+        margin: 4,
+        width: 25
+    },
+    header: {
+        alignItems: 'center',
+        borderBottomColor: '#ddd',
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        marginHorizontal: 10,
+        padding: 10
+    },
+    headerTitle: {
+        color: '#333',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 10
+    },
+    notesText: {
+        fontSize: 20
+    },
+    notesView: {
+        marginTop: 10,
+        paddingHorizontal: 10
+    },
+    photo: {
+        height: 300,
+        width: 300
+    },
+    photoView: {
+        marginTop: 10,
+        paddingHorizontal: 10
+    },
+    row: {
+        alignContent: "center",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 10,
+        paddingHorizontal: 10
+    },
+    rowLabel: {
+        fontSize: 20
+    },
+    section: {
+        marginTop: -10,
+        padding: 20
+    },
+    sectionHeader: {
+        borderBottomWidth: 1
+    },
+    sectionHeaderText: {
+        fontSize: 24,
+        fontWeight: 'bold'
+    }
+});

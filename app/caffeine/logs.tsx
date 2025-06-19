@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useState } from 'react';
@@ -14,7 +14,7 @@ function LogCard({log}: {log: IntakeEntry}) {
     const dateString = time.toLocaleDateString(locale,{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     const timeString = time.toLocaleTimeString(locale,{ hour: '2-digit', minute: '2-digit' });
     return (
-        <Card key={timeString} style={{}}>
+        <Card key={timeString} style={styles.card}>
             <View>
                 <Text>{dateString}</Text>
                 <Text>{timeString}</Text>
@@ -49,16 +49,10 @@ export default function Caffeine(){
     
     
     return (
-        <View style={{
-            flex: 1,
-            padding:20,
-            justifyContent: "flex-start",
-            flexDirection: 'column',
-        }}>
+        <View style={styles.container}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} />
             <Text>Intakes: </Text>
             {intakes.map((intake) => {
-                
                 return (
                     <LogCard key={intake.time} log={intake} />
                 );
@@ -66,3 +60,15 @@ export default function Caffeine(){
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    card: {
+        // Add card-specific styles here if needed
+    },
+    container: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: "flex-start",
+        padding: 20
+    }
+});
