@@ -1,13 +1,12 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Drawer } from 'expo-router/drawer';
-import { Link, usePathname, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-
 import { Feather } from '@expo/vector-icons';
+import { router, useNavigation } from 'expo-router';
+import { Pressable } from 'react-native';
 
 export default function Layout() {
-  const path = usePathname();
   const [customScreens, setCustomScreens] = useState<{ name: string }[]>([]);
 
   // useEffect(() => {
@@ -20,67 +19,60 @@ export default function Layout() {
   //   })();
   //   return () => { isMounted = false; };
   // }, []);
-useEffect(() => {
-    setCustomScreens([{name: "a"}, {name: "b"}]);
-  }, []);
+  useEffect(() => {
+      setCustomScreens([{name: "a"}, {name: "b"}]);
+    }, []);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Drawer>
-        <Drawer.Screen
+      <Stack
+        screenOptions={{
+          headerShown: true,
+          headerLeft: ({ canGoBack }) =>
+            canGoBack ? (
+              <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 12 }}>
+                <Feather name="arrow-left" size={24} color="black" />
+              </Pressable>
+            ) : null
+        }}
+      >
+        <Stack.Screen
           name="index"
           options={{
-            drawerLabel: 'Home',
-            title: 'MeTracker',
+            title: "MeTracker Home",
+            headerLeft: () => null
           }}
         />
-        <Drawer.Screen
+        <Stack.Screen
           name="caffeine"
           options={{
-            drawerLabel: 'Caffeine Tracker',
-            title: 'Caffeine Tracker',
-            headerRight: () => (!path.includes("add")?
-            <Link href="/caffeine/add" style={{padding:10}}><Feather name="plus" size={24} color="black" /></Link>
-            :<Link href="/caffeine/logs" style={{padding:10}}><Feather name="file-text" size={24} color="black" /></Link>),
+            title: "Caffeine Tracker"
           }}
         />
-        <Drawer.Screen
+        <Stack.Screen
           name="toilet"
           options={{
-            drawerLabel: 'Toilet logs',
-            title: 'Toilet logs',
-            headerRight: () => (path.includes("logs")?
-            <Link href="/toilet/add" style={{padding:10}}><Feather name="plus" size={24} color="black" /></Link>
-            :<Link href="/toilet/logs" style={{padding:10}}><Feather name="file-text" size={24} color="black" /></Link>),
+            title: "Toilet Logs"
           }}
         />
-        <Drawer.Screen
+        <Stack.Screen
           name="createTracker"
           options={{
-            drawerLabel: 'Create Tracker',
-            title: 'Create Tracker',
+            title: "Create Tracker"
           }}
         />
-        
-        <Drawer.Screen
-          name={`customTrackersList`}
+        <Stack.Screen
+          name="customTrackersList"
           options={{
-            drawerLabel: 'Custom Trackers',
-            title: 'Custom Trackers',
-            headerRight: () => (
-              <Link href="/createTracker" style={{ padding: 10 }}>
-                <Feather name="plus" size={24} color="black" />
-              </Link>
-            ),
+            title: "Custom Trackers"
           }}
         />
-        <Drawer.Screen
-          name={"customTrackers/[name]"}
+        <Stack.Screen
+          name="customTrackers"
           options={{
-            title: 'Custom Tracker',
-            drawerItemStyle: { display: 'none' }, // Hide this screen from the drawer
+            headerShown: false
           }}
         />
-      </Drawer>
+      </Stack>
     </GestureHandlerRootView>
   );
 }

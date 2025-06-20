@@ -4,10 +4,11 @@ import { useState } from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import * as SQLite from 'expo-sqlite';
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import * as FileSystem from 'expo-file-system';
 
 export default function Add(){
+
     const [isUrination, setUrination] = useState(true);
     const [showUrinationColors, setShowUrinationColors] = useState(false);
     const [urinationColor, setUrinationColor] = useState('#EBE9EA');
@@ -117,7 +118,7 @@ export default function Add(){
             </View>
 
             <View style={[styles.sectionHeader, {paddingTop:30}]}>
-                <Text style={styles.sectionTitle}>Bowel Movment</Text>
+                <Text style={styles.sectionTitle}>Bowel Movement</Text>
                 <Checkbox value={isBM} onValueChange={setBM} color={isBM ? '#4630EB' : undefined} />
             </View>
             <View style={styles.divider}/>

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useState } from 'react';
@@ -6,7 +6,8 @@ import type { IntakeEntry } from '@/types';
 import { useFocusEffect } from 'expo-router';
 import { Card } from '@/components/Card';
 import { getLocales } from 'expo-localization';
-
+import { router } from 'expo-router';
+import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 
 const locale = getLocales()[0].languageTag as string;
 function LogCard({log}: {log: IntakeEntry}) {
@@ -40,12 +41,6 @@ export default function Caffeine(){
             fetchIntakes();
         }, [])
     );
-    useFocusEffect(
-        useCallback(() => {
-            
-
-        }, [])
-    );
     
     
     return (
@@ -57,6 +52,8 @@ export default function Caffeine(){
                     <LogCard key={intake.time} log={intake} />
                 );
             })}
+            {/* Floating Plus Button */}
+            <FloatingPlusButton onPress={() => router.navigate('/caffeine/add')} />
         </View>
     );
 }

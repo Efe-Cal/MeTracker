@@ -3,6 +3,7 @@ import { View, Text, TextInput } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite';
+import { router } from "expo-router";
 
 type FieldType = "text" | "number" | "boolean" | "select" | "substance";
 
@@ -31,19 +32,21 @@ export default function createTracker() {
         try {
             const db = await SQLite.openDatabaseAsync("Trackers.db");
             await db.withTransactionAsync(async () => {
-                await db.execAsync(`
-                    CREATE TABLE IF NOT EXISTS trackers (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT NOT NULL
-                    );
-                    CREATE TABLE IF NOT EXISTS fields (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        trackerId INTEGER NOT NULL,
-                        name TEXT NOT NULL,
-                        type TEXT NOT NULL,
-                        FOREIGN KEY (trackerId) REFERENCES trackers(id)
-                    );
-                `);
+            await db.runAsync(`
+                CREATE TABLE IF NOT EXISTS trackers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL
+                );
+            `);
+            await db.runAsync(`
+                CREATE TABLE IF NOT EXISTS fields (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    trackerId INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    FOREIGN KEY (trackerId) REFERENCES trackers(id)
+                );
+            `);
 
                 const result = await db.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
                 const trackerId = result.lastInsertRowId;
@@ -57,6 +60,7 @@ export default function createTracker() {
             console.error("Error saving tracker:", error);
             alert("Failed to save tracker. Please try again.");
         }
+        router.navigate("/");
     }
     return (
         <View style={{flex: 1, margin: 20, justifyContent: "flex-start", flexDirection: 'column',position:"relative"}}>
@@ -74,14 +78,14 @@ export default function createTracker() {
             <TouchableOpacity
                 style={{
                     backgroundColor: "#4630EB",
-                    padding: 10,
+                    padding: 6, // reduced from 10
                     marginTop: 20,
                     borderRadius: 10,
                     width: "100%"
                 }}
                 onPress={() => setShowCreate(!showCreate)}
             >
-                <Text style={{color: "white", textAlign: "center", fontSize: 20, fontWeight: "bold"}}>Add field</Text>
+                <Text style={{color: "white", textAlign: "center", fontSize: 15, fontWeight: "bold"}}>Add field</Text>
             </TouchableOpacity>
 
             {showCreate &&
@@ -101,7 +105,7 @@ export default function createTracker() {
                             { label: 'Substance', value: 'substance' }
                         ]}
                         value={fieldType}
-                        style={{height: 50, borderColor: 'gray', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginTop: 10}}
+                        style={{height: 40, borderColor: 'gray', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginTop: 10}} // reduced height
                         labelField="label"
                         valueField="value"
                         onChange={item => {
@@ -111,7 +115,7 @@ export default function createTracker() {
                     <TouchableOpacity
                         style={{
                             backgroundColor: "#4630EB",
-                            padding: 10,
+                            padding: 6, // reduced from 10
                             marginTop: 20,
                             borderRadius: 10,
                             width: "100%"
@@ -125,20 +129,20 @@ export default function createTracker() {
                             setShowCreate(false);
                             setFieldName('');
                         }}>
-                        <Text style={{fontSize:20, fontWeight:"bold",color:"white", textAlign:"center"}}>Save Field</Text>
+                        <Text style={{fontSize:15, fontWeight:"bold",color:"white", textAlign:"center"}}>Save Field</Text>
                     </TouchableOpacity>
                 </View>
             }
             <TouchableOpacity onPress={saveTracker} style={{
                 backgroundColor:"#4630EB",
-                padding:10,
+                padding:6, // reduced from 10
                 marginTop:20,
                 borderRadius:10,
                 position:"absolute",
                 bottom:0,
                 width:"100%"
             }}>
-                <Text style={{color:"white",textAlign:"center",fontSize:20}}>Save</Text>
+                <Text style={{color:"white",textAlign:"center",fontSize:15}}>Save</Text>
             </TouchableOpacity>
         </View>
     );

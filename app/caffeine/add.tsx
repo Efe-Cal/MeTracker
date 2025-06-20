@@ -2,7 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { Dropdown } from 'react-native-element-dropdown';
 import { useEffect, useState } from 'react';
 import * as SQLite from 'expo-sqlite';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 type Drink = {
     name: string,

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
+import { FloatingPlusButton } from '@/components/FloatingPlusButton';
+import { router } from 'expo-router';
 
 export default function CustomTrackersList() {
     const [customTrackers, setCustomTrackers] = useState<{ name: string }[]>([]);
@@ -26,6 +28,8 @@ export default function CustomTrackersList() {
                     </Link>
                 ))}
             </ScrollView>
+            {/* Floating Plus Button */}
+            <FloatingPlusButton onPress={() => router.navigate('/createTracker/createMenu')} />
         </View>
     );
 }

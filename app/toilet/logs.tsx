@@ -6,6 +6,7 @@ import { useState } from "react";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Href, useFocusEffect } from "expo-router";
 import { router } from "expo-router";
+import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 
 
 export type Log = {
@@ -98,6 +99,8 @@ export default function Logs() {
         ))}
       </ScrollView>
       :<Text>No Logs</Text>}
+      {/* Floating Plus Button */}
+      <FloatingPlusButton onPress={() => router.navigate('/toilet/add')} />
     </View>
   );
 }
@@ -133,6 +136,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     padding: 15
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    backgroundColor: '#4630EB',
+    borderRadius: 32,
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 10
   },
   icon: {
     alignSelf: "center",
