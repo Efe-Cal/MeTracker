@@ -1,8 +1,10 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import * as SQLite from 'expo-sqlite';
 import { router } from 'expo-router';
+import { ThemeContext } from '@/theme/ThemeContext';
+import { ThemedText } from '@/components/ThemedText';
 
 type Drink = {
     name: string,
@@ -17,6 +19,7 @@ export default function Add() {
     const [dropdownData, setDropdownData] = useState<{label: string, value: string}[]>([{label: 'Create new drink', value: 'create'}]);
     const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
     const [showAdd, setShowAdd] = useState(false);
+    const { theme } = useContext(ThemeContext);
 
     const updateDropdown = async () => {
         const data = [{label: 'Create new drink', value: 'create'}];
@@ -34,11 +37,24 @@ export default function Add() {
     }, []);
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
             <Dropdown
                 data={dropdownData}
                 value={value}
-                style={styles.dropdown}
+                style={[
+                  styles.dropdown,
+                  {
+                    backgroundColor: theme === "dark" ? "#222" : "#fff",
+                    borderColor: theme === "dark" ? "#444" : "gray"
+                  }
+                ]}
+                containerStyle={{
+                  backgroundColor: theme === "dark" ? "#222" : "#fff",
+                  borderColor: theme === "dark" ? "#444" : "gray"
+                }}
+                placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
+                selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
+                itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                 labelField="label"
                 valueField="value"
                 onChange={item =>{
@@ -60,14 +76,30 @@ export default function Add() {
                     placeholder="Name"
                     value={name}
                     onChangeText={setName}
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: theme === "dark" ? "#222" : "#fff",
+                        color: theme === "dark" ? "#fff" : "#222",
+                        borderColor: theme === "dark" ? "#444" : "#ccc"
+                      }
+                    ]}
+                    placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
                 />
                 <TextInput 
                     placeholder="Caffeine (mg)"
                     value={caffeine}
                     onChangeText={setCaffeine}
                     keyboardType="numeric"
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: theme === "dark" ? "#222" : "#fff",
+                        color: theme === "dark" ? "#fff" : "#222",
+                        borderColor: theme === "dark" ? "#444" : "#ccc"
+                      }
+                    ]}
+                    placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
                 />
                 <TouchableOpacity style={styles.saveButton}
                     onPress={async () => {
@@ -81,7 +113,7 @@ export default function Add() {
                         setSelectedDrink({name, caffeine: parseInt(caffeine)});
                         setShowAdd(true);
                 }}>
-                    <Text style={styles.saveButtonText}>Save</Text>
+                    <ThemedText style={styles.saveButtonText}>Save</ThemedText>
                 </TouchableOpacity>
             </View>
             }
@@ -98,7 +130,7 @@ export default function Add() {
                             router.navigate("/caffeine/logs")
                         }
                 }}>
-                    <Text style={styles.saveButtonText}>Add</Text>
+                    <ThemedText style={styles.saveButtonText}>Add</ThemedText>
                 </TouchableOpacity>
             </View>
             }
@@ -139,7 +171,8 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         marginTop: 10,
-        padding: 5
+        padding: 5,
+        borderRadius: 6
     },
     saveButton: {
         alignItems: "center",

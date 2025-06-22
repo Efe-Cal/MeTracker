@@ -1,9 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
-import { View, Text, TouchableOpacity, Image, ToastAndroid, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Image, ToastAndroid, Alert, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { router } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
+import { useContext } from 'react';
+import { ThemeContext } from '@/theme/ThemeContext';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function Details(){
     const log = useLocalSearchParams<{
@@ -19,6 +22,7 @@ export default function Details(){
         photo: string;
         notes:string;
     }>();
+    const { theme } = useContext(ThemeContext);
     const deleteLog = async ()=>{
         const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
         await db.runAsync(`DELETE FROM toilet WHERE time=?`,[log.time]);
@@ -26,19 +30,18 @@ export default function Details(){
         db.closeSync();
         router.back();
     }
-    console.log(log);
     const date = new Date(log.time).toDateString();
     return (
-        <View>
+        <View style={{ flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff" }}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={()=>{
                     router.back();
                 }}>
-                    <Ionicons name="arrow-back" size={24} color="black" />
+                    <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "black"} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>
+                <ThemedText style={styles.headerTitle}>
                     {date}
-                </Text>
+                </ThemedText>
                 <View style={{flex:1}}></View>
                 <TouchableOpacity onPress={()=>{
                     Alert.alert(
@@ -55,22 +58,22 @@ export default function Details(){
                             }
                         ]
                     );}}>
-                    <Feather name="trash-2" size={24} color="black" />
+                    <Feather name="trash-2" size={24} color={theme === "dark" ? "#fff" : "black"} />
                 </TouchableOpacity>
             </View>
             {/* Urination */}
             {log.urination=="1"?
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>Urination</Text>
+                    <ThemedText style={styles.sectionHeaderText}>Urination</ThemedText>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.rowLabel}>Color</Text>
+                    <ThemedText style={styles.rowLabel}>Color</ThemedText>
                     <View style={[styles.colorBox, {backgroundColor:"#"+log.urinationColor}]}></View>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.rowLabel}>Pain</Text>
-                    <Text style={styles.rowLabel}>{log.isPainUrination=="1"?"Yes":"No"}</Text>
+                    <ThemedText style={styles.rowLabel}>Pain</ThemedText>
+                    <ThemedText style={styles.rowLabel}>{log.isPainUrination=="1"?"Yes":"No"}</ThemedText>
                 </View>
             </View>
             :null}
@@ -78,19 +81,19 @@ export default function Details(){
             {log.isBM=="1"?
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>Bowel Movement</Text>
+                    <ThemedText style={styles.sectionHeaderText}>Bowel Movement</ThemedText>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.rowLabel}>Color</Text>
+                    <ThemedText style={styles.rowLabel}>Color</ThemedText>
                     <View style={[styles.colorBox, {backgroundColor:"#"+log.BMColor}]}></View>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.rowLabel}>Pain</Text>
-                    <Text style={styles.rowLabel}>{log.isPainBM=="1"?"Yes":"No"}</Text>
+                    <ThemedText style={styles.rowLabel}>Pain</ThemedText>
+                    <ThemedText style={styles.rowLabel}>{log.isPainBM=="1"?"Yes":"No"}</ThemedText>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.rowLabel}>Foul-Smell</Text>
-                    <Text style={styles.rowLabel}>{log.isSmell=="1"?"Yes":"No"}</Text>
+                    <ThemedText style={styles.rowLabel}>Foul-Smell</ThemedText>
+                    <ThemedText style={styles.rowLabel}>{log.isSmell=="1"?"Yes":"No"}</ThemedText>
                 </View>
             </View>
             :null}
@@ -99,10 +102,10 @@ export default function Details(){
             {log.notes.length>0?
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>Notes</Text>
+                    <ThemedText style={styles.sectionHeaderText}>Notes</ThemedText>
                 </View>
                 <View style={styles.notesView}>
-                    <Text style={styles.notesText}>{log.notes}</Text>
+                    <ThemedText style={styles.notesText}>{log.notes}</ThemedText>
                 </View>
             </View>
             :null}
@@ -111,7 +114,7 @@ export default function Details(){
             {log.photo.length>0?
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>Photo</Text>
+                    <ThemedText style={styles.sectionHeaderText}>Photo</ThemedText>
                 </View>
                 <View style={styles.photoView}>
                     <Image source={{uri:log.photo}} style={styles.photo} />

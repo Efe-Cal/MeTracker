@@ -1,4 +1,7 @@
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
+import { ThemedText } from "./ThemedText";
+import { useContext } from "react";
+import { ThemeContext } from "@/theme/ThemeContext";
 
 type TextFieldProps = {
     label: string;
@@ -11,15 +14,24 @@ export function TextField({
     value,
     onValueChange
 }: TextFieldProps) {
+    const { theme } = useContext(ThemeContext);
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>{label}</Text>
+            <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>{label}</ThemedText>
             <TextInput
-                style={[styles.input]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme === "dark" ? "#222" : "#fff",
+                    color: theme === "dark" ? "#fff" : "#222",
+                    borderColor: theme === "dark" ? "#444" : "#ccc"
+                  }
+                ]}
                 value={value}
                 onChangeText={onValueChange}
                 multiline={true}
                 numberOfLines={3}
+                placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
             />
         </View>
     );

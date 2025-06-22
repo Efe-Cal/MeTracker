@@ -1,12 +1,14 @@
-import { ScrollView, Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Card } from "@/components/Card";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 import * as SQLite from 'expo-sqlite';
 import { useState } from "react";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Href, useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemeContext } from '@/theme/ThemeContext';
 
 
 export type Log = {
@@ -34,9 +36,9 @@ const LogCard = ({log}: {log: Log}) => {
       }}>
     <Card style={styles.card}>
       <View style={styles.cardContent}>
-        <Text style={styles.cardDate}>{date}</Text>
-        <Text style={styles.cardTime}>{log.time.split(" ")[1].substring(0,5)}</Text>
-        <Text style={styles.cardNotes}>{log.notes}</Text>
+        <ThemedText style={styles.cardDate}>{date}</ThemedText>
+        <ThemedText style={styles.cardTime}>{log.time.split(" ")[1].substring(0,5)}</ThemedText>
+        <ThemedText style={styles.cardNotes}>{log.notes}</ThemedText>
       </View>
       <View style={styles.logView}>
         {
@@ -71,6 +73,7 @@ const LogCard = ({log}: {log: Log}) => {
 
 export default function Logs() {
   const [logs, setLogs] = useState([] as Log[]);
+  const { theme } = useContext(ThemeContext);
   const fetchData = async () => {
     const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
     await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
@@ -87,7 +90,7 @@ export default function Logs() {
 
   console.log(logs);
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
       {/* <TouchableOpacity onPress={()=>fetchData()}><Text>Refresh</Text></TouchableOpacity> */}
       {logs.length>0?
       <ScrollView
@@ -98,7 +101,7 @@ export default function Logs() {
           <LogCard key={index} log={log} />
         ))}
       </ScrollView>
-      :<Text>No Logs</Text>}
+      :<ThemedText>No Logs</ThemedText>}
       {/* Floating Plus Button */}
       <FloatingPlusButton onPress={() => router.navigate('/toilet/add')} />
     </View>

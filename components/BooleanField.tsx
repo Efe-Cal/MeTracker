@@ -1,5 +1,8 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Checkbox from "expo-checkbox";
+import { ThemedText } from "./ThemedText";
+import { useContext } from "react";
+import { ThemeContext } from "@/theme/ThemeContext";
 
 type BooleanFieldProps = {
   label: string;
@@ -9,10 +12,16 @@ type BooleanFieldProps = {
 };
 
 export function BooleanField({ label, value, onValueChange, disabled }: BooleanFieldProps) {
+  const { theme } = useContext(ThemeContext);
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <Checkbox value={value} onValueChange={onValueChange} color={value ? "#4630EB" : undefined} disabled={disabled} />
+      <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>{label}</ThemedText>
+      <Checkbox
+        value={value}
+        onValueChange={onValueChange}
+        color={value ? "#4630EB" : theme === "dark" ? "#444" : undefined}
+        disabled={disabled}
+      />
     </View>
   );
 }

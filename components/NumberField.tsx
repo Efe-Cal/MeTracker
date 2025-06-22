@@ -1,5 +1,7 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React, { useContext } from 'react';
+import { View, TextInput, StyleSheet } from 'react-native';
+import { ThemedText } from './ThemedText';
+import { ThemeContext } from '@/theme/ThemeContext';
 
 type NumberFieldProps = {
   label: string;
@@ -8,11 +10,19 @@ type NumberFieldProps = {
 };
 
 export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
+  const { theme } = useContext(ThemeContext);
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>{label}</ThemedText>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme === "dark" ? "#222" : "#fff",
+            color: theme === "dark" ? "#fff" : "#222",
+            borderColor: theme === "dark" ? "#444" : "#ccc"
+          }
+        ]}
         keyboardType="numeric"
         value={value?.toString() ?? ""}
         onChangeText={text => {
@@ -20,6 +30,7 @@ export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
           onValueChange(isNaN(num) ? 0 : num);
         }}
         placeholder="Enter number"
+        placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
       />
     </View>
   );
@@ -29,7 +40,7 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 6,
     width: "100%",
-    justifyContent:"space-between",
+    justifyContent: "space-between",
     flexDirection: "row",
     alignItems: "center"
   },

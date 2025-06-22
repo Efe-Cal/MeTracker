@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { View, Text, TextInput } from "react-native";
+import { useState, useContext } from "react";
+import { View, TextInput, StyleSheet, ScrollView } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite';
 import { router } from "expo-router";
+import { ThemeContext } from "@/theme/ThemeContext";
+import { ThemedText } from "@/components/ThemedText";
 
 type FieldType = "text" | "number" | "boolean" | "select" | "substance";
 
@@ -18,7 +20,8 @@ export default function createTracker() {
     const [showCreate, setShowCreate] = useState(false);
     const [fieldType, setFieldType] = useState<FieldType>("text");
     const [fieldName, setFieldName] = useState("");
-    
+    const { theme } = useContext(ThemeContext);
+
     async function saveTracker() {
         if (trackerName.trim() === "") {
             alert("Tracker name cannot be empty");
@@ -99,87 +102,176 @@ export default function createTracker() {
         router.navigate("/");
     }
     return (
-        <View style={{flex: 1, margin: 20, justifyContent: "flex-start", flexDirection: 'column',position:"relative"}}>
-            <TextInput 
+        <View style={[styles.outer, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
+            <ScrollView
+                contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}
+                keyboardShouldPersistTaps="handled"
+            >
+                <TextInput 
                     placeholder="Name"
                     value={trackerName}
                     onChangeText={setTrackerName}
-                    style={{marginTop:10,borderWidth:1,padding:5}}
-            />
-            {fields && fields.map((field, index) => (
-                <View key={index} style={{marginVertical: 5}}>
-                    <Text>{field.name} ({field.type})</Text>
-                </View>
-            ))}
-            <TouchableOpacity
-                style={{
-                    backgroundColor: "#4630EB",
-                    padding: 6, // reduced from 10
-                    marginTop: 20,
-                    borderRadius: 10,
-                    width: "100%"
-                }}
-                onPress={() => setShowCreate(!showCreate)}
-            >
-                <Text style={{color: "white", textAlign: "center", fontSize: 15, fontWeight: "bold"}}>Add field</Text>
-            </TouchableOpacity>
+                    style={[
+                        styles.input,
+                        {
+                            backgroundColor: theme === "dark" ? "#222" : "#fff",
+                            color: theme === "dark" ? "#fff" : "#222",
+                            borderColor: theme === "dark" ? "#444" : "#ccc"
+                        }
+                    ]}
+                    placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                />
+                {fields && fields.map((field, index) => (
+                    <View key={index} style={{marginVertical: 5}}>
+                        <ThemedText style={{ color: theme === "dark" ? "#fff" : "#222" }}>{field.name} ({field.type})</ThemedText>
+                    </View>
+                ))}
+                <TouchableOpacity
+                    style={[
+                        styles.addFieldButton,
+                        { backgroundColor: "#4630EB" }
+                    ]}
+                    onPress={() => setShowCreate(!showCreate)}
+                >
+                    <ThemedText style={styles.addFieldButtonText}>Add field</ThemedText>
+                </TouchableOpacity>
 
-            {showCreate &&
-                <View style={{marginTop:20, flex:1}}>
-                    <TextInput 
-                        placeholder="Field Name"
-                        value={fieldName}
-                        onChangeText={setFieldName}
-                        style={{marginTop:10,borderWidth:1,padding:5}}
-                    />
-                    <Dropdown
-                        data={[
-                            { label: 'Text', value: 'text' },
-                            { label: 'Number', value: 'number' },
-                            { label: 'Boolean', value: 'boolean' },
-                            { label: 'Select', value: 'select' },
-                            { label: 'Substance', value: 'substance' }
-                        ]}
-                        value={fieldType}
-                        style={{height: 40, borderColor: 'gray', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginTop: 10}} // reduced height
-                        labelField="label"
-                        valueField="value"
-                        onChange={item => {
-                            setFieldType(item.value as FieldType);
-                        }}
-                    />
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: "#4630EB",
-                            padding: 6, // reduced from 10
-                            marginTop: 20,
-                            borderRadius: 10,
-                            width: "100%"
-                        }}
-                        onPress={() => {
-                            if (trackerName.trim() === "") {
-                                alert("Field name cannot be empty");
-                                return;
-                            }
-                            setFields([...fields, {name: fieldName, type: fieldType}]);
-                            setShowCreate(false);
-                            setFieldName('');
-                        }}>
-                        <Text style={{fontSize:15, fontWeight:"bold",color:"white", textAlign:"center"}}>Save Field</Text>
-                    </TouchableOpacity>
-                </View>
-            }
-            <TouchableOpacity onPress={saveTracker} style={{
-                backgroundColor:"#4630EB",
-                padding:6, // reduced from 10
-                marginTop:20,
-                borderRadius:10,
-                position:"absolute",
-                bottom:0,
-                width:"100%"
-            }}>
-                <Text style={{color:"white",textAlign:"center",fontSize:15}}>Save</Text>
+                {showCreate &&
+                    <View style={{marginTop:20, width: "100%"}}>
+                        <TextInput 
+                            placeholder="Field Name"
+                            value={fieldName}
+                            onChangeText={setFieldName}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: theme === "dark" ? "#222" : "#fff",
+                                    color: theme === "dark" ? "#fff" : "#222",
+                                    borderColor: theme === "dark" ? "#444" : "#ccc"
+                                }
+                            ]}
+                            placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                        />
+                        <Dropdown
+                            data={[
+                                { label: 'Text', value: 'text' },
+                                { label: 'Number', value: 'number' },
+                                { label: 'Boolean', value: 'boolean' },
+                                { label: 'Select', value: 'select' },
+                                { label: 'Substance', value: 'substance' }
+                            ]}
+                            value={fieldType}
+                            style={[
+                                styles.dropdown,
+                                {
+                                    backgroundColor: theme === "dark" ? "#222" : "#fff",
+                                    borderColor: theme === "dark" ? "#444" : "gray"
+                                }
+                            ]}
+                            containerStyle={{
+                                backgroundColor: theme === "dark" ? "#222" : "#fff",
+                                borderColor: theme === "dark" ? "#444" : "gray"
+                            }}
+                            placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
+                            selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
+                            itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
+                            labelField="label"
+                            valueField="value"
+                            onChange={item => {
+                                setFieldType(item.value as FieldType);
+                            }}
+                        />
+                        <TouchableOpacity
+                            style={[
+                                styles.saveFieldButton,
+                                { backgroundColor: "#4630EB" }
+                            ]}
+                            onPress={() => {
+                                if (trackerName.trim() === "") {
+                                    alert("Field name cannot be empty");
+                                    return;
+                                }
+                                setFields([...fields, {name: fieldName, type: fieldType}]);
+                                setShowCreate(false);
+                                setFieldName('');
+                            }}>
+                            <ThemedText style={styles.saveFieldButtonText}>Save Field</ThemedText>
+                        </TouchableOpacity>
+                    </View>
+                }
+            </ScrollView>
+            <TouchableOpacity onPress={saveTracker} style={[styles.saveButton, { backgroundColor: "#4630EB" }]}>
+                <ThemedText style={styles.saveButtonText}>Save</ThemedText>
             </TouchableOpacity>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    outer: {
+        flex: 1,
+    },
+    container: {
+        flexGrow: 1,
+        justifyContent: "flex-start",
+        flexDirection: 'column',
+        position: "relative",
+        padding: 20,
+        paddingBottom: 80,
+        minHeight: "100%",
+    },
+    input: {
+        marginTop: 10,
+        borderWidth: 1,
+        padding: 5,
+        borderRadius: 6,
+        width: "100%",
+    },
+    dropdown: {
+        borderColor: 'gray',
+        borderRadius: 5,
+        borderWidth: 1,
+        height: 40,
+        paddingHorizontal: 10,
+        marginTop: 10,
+        width: "100%",
+    },
+    addFieldButton: {
+        padding: 6,
+        marginTop: 20,
+        borderRadius: 10,
+        width: "100%"
+    },
+    addFieldButtonText: {
+        color: "white",
+        textAlign: "center",
+        fontSize: 15,
+        fontWeight: "bold"
+    },
+    saveFieldButton: {
+        padding: 6,
+        marginTop: 20,
+        borderRadius: 10,
+        width: "100%"
+    },
+    saveFieldButtonText: {
+        fontSize: 15,
+        fontWeight: "bold",
+        color: "white",
+        textAlign: "center"
+    },
+    saveButton: {
+        padding: 12,
+        borderRadius: 10,
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        margin: 15,
+    },
+    saveButtonText: {
+        color: "white",
+        textAlign: "center",
+        fontSize: 15
+    }
+});

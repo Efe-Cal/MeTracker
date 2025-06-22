@@ -2,18 +2,21 @@ import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useContext } from 'react';
 import * as SQLite from 'expo-sqlite/next';
 import { Tracker, Field } from '@/types';
 import { Card } from '@/components/Card';
 import { useFocusEffect } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemeContext } from '@/theme/ThemeContext';
 
 export default function DetailsScreen() {
   const { name } = useLocalSearchParams() as { name: string };
   const [fields, setFields] = useState([] as Field[]);
   const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
   // const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
+  const { theme } = useContext(ThemeContext);
   
   useFocusEffect(
     useCallback(() => {
@@ -48,13 +51,13 @@ export default function DetailsScreen() {
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: "#fff"}}>
+    <View style={{flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff"}}>
       <ScrollView contentContainerStyle={styles.container}>
         {trackerData.length === 0 && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
-            <Text style={{ fontSize: 18 }}>
+            <ThemedText style={{ fontSize: 18 }}>
               No data available for this tracker. Please add some entries.
-            </Text>
+            </ThemedText>
           </View>
         )}
         {trackerData.map((data, index) => (
@@ -64,23 +67,25 @@ export default function DetailsScreen() {
           >
             {/* // show created_at */}
             <View style={{borderBottomWidth: 1, borderBottomColor: "#222", paddingBottom: 8 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+              <ThemedText style={{ fontSize: 18, fontWeight: 'bold' }}>
                 {data.created_at
                   ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
                     " " +
                     new Date(data.created_at).toLocaleDateString()
                   : "No date available"}
-              </Text>
+              </ThemedText>
             </View>
             {/* Render data content here if needed */}
             {fields.map((field) => (
               <View key={field.id} style={styles.fieldContainer}>
-                <Text style={{ fontWeight: 'bold' }}>{field.name}:</Text>
-                <Text>{field.type=="boolean" ? 
-                  (data[field.name]?
-                  <FontAwesome name="check-square" size={24} color="green" />
-                  :<FontAwesome name="close" size={24} color="red" />) 
-                  :data[field.name]}</Text>
+                <ThemedText style={{ fontWeight: 'bold' }}>{field.name}:</ThemedText>
+                <ThemedText>
+                  {field.type=="boolean" ? 
+                    (data[field.name]?
+                      <FontAwesome name="check-square" size={24} color="green" />
+                      :<FontAwesome name="close" size={24} color="red" />) 
+                    :data[field.name]}
+                </ThemedText>
               </View>
             ))}
           </Card>

@@ -1,11 +1,13 @@
 import { View, Text, TouchableOpacity, Image, TextInput, ToastAndroid, StyleSheet } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import * as SQLite from 'expo-sqlite';
-import { router, useLocalSearchParams } from 'expo-router'
+import { router } from 'expo-router'
 import * as FileSystem from 'expo-file-system';
+import { ThemeContext } from '@/theme/ThemeContext';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function Add(){
 
@@ -22,6 +24,8 @@ export default function Add(){
     const [isSmell, setSmell] = useState(false);
     const [photo, setPhoto] = useState("");
     const [note, setNote] = useState("");
+
+    const { theme } = useContext(ThemeContext);
 
     const saveImage = async (uri:string) => {
         // Create a unique filename
@@ -89,15 +93,15 @@ export default function Add(){
     }
     //TODO: Add ScrollView
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
             <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Urination</Text>
+                <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Urination</ThemedText>
                 <Checkbox value={isUrination} onValueChange={setUrination} color={isUrination ? '#4630EB' : undefined} />
             </View>
             <View style={styles.divider}/>
             <View style={[styles.sectionBody, {opacity:isUrination?1:0.5, pointerEvents:isUrination?"auto":"none"}]}>
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Color</Text>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Color</ThemedText>
                     <TouchableOpacity onPress={()=>{setShowUrinationColors((prev)=>!prev)}} style={[styles.colorBox, {backgroundColor:urinationColor}]}/>
                 </View>
                 {showUrinationColors?
@@ -112,19 +116,19 @@ export default function Add(){
                 </View>:null}
 
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Painful</Text>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Painful</ThemedText>
                     <Checkbox value={isPainUrination} onValueChange={setPainUrination} color={isPainUrination ? '#4630EB' : undefined} />
                 </View>
             </View>
 
             <View style={[styles.sectionHeader, {paddingTop:30}]}>
-                <Text style={styles.sectionTitle}>Bowel Movement</Text>
+                <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Bowel Movement</ThemedText>
                 <Checkbox value={isBM} onValueChange={setBM} color={isBM ? '#4630EB' : undefined} />
             </View>
             <View style={styles.divider}/>
             <View style={[styles.sectionBody, {opacity:isBM?1:0.5, pointerEvents:isBM?"auto":"none"}]}>
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Color</Text>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Color</ThemedText>
                     <TouchableOpacity onPress={()=>{setShowBMColors((prev)=>!prev)}} style={[styles.colorBox, {backgroundColor:BMColor}]}/>
                 </View>
                 {showBMColors?
@@ -139,8 +143,8 @@ export default function Add(){
                 </View>:null}
                 
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Shape</Text>
-                    <TouchableOpacity onPress={()=>{setShowBMShapes((prev)=>!prev)}} style={styles.shapeBox}><Text>{BMShapes[BMshape]}</Text></TouchableOpacity>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Shape</ThemedText>
+                    <TouchableOpacity onPress={()=>{setShowBMShapes((prev)=>!prev)}} style={styles.shapeBox}><ThemedText>{BMShapes[BMshape]}</ThemedText></TouchableOpacity>
                 </View>
                 {showBMShapes?
                 <View>
@@ -150,18 +154,18 @@ export default function Add(){
                             onPress={() => { setBMShape(index);setShowBMShapes(false) }}
                             style={styles.shapeOption}
                         >
-                            <Text>{shape}</Text>
+                            <ThemedText>{shape}</ThemedText>
                         </TouchableOpacity>
                     ))}
                 </View>:null}
 
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Painful</Text>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Painful</ThemedText>
                     <Checkbox value={isPainBM} onValueChange={setPainBM} color={isPainBM ? '#4630EB' : undefined} />
                 </View>
 
                 <View style={styles.rowBetween}>
-                    <Text style={styles.label}>Foul-smell</Text>
+                    <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>Foul-smell</ThemedText>
                     <Checkbox value={isSmell} onValueChange={setSmell} color={isSmell ? '#4630EB' : undefined} />
                 </View>
             </View>
@@ -175,14 +179,22 @@ export default function Add(){
                     </View>
                     :
                     <View style={styles.photoButtonContent}>
-                        <MaterialIcons name="add-photo-alternate" size={24} color="black" />
-                        <Text style={styles.photoButtonText}>Add Photo</Text>
+                        <MaterialIcons name="add-photo-alternate" size={24} color={theme === "dark" ? "#fff" : "black"} />
+                        <ThemedText style={styles.photoButtonText}>Add Photo</ThemedText>
                     </View>}
             </TouchableOpacity>
 
             <TextInput
-                style={styles.noteInput}
+                style={[
+                  styles.noteInput,
+                  {
+                    backgroundColor: theme === "dark" ? "#222" : "#fff",
+                    color: theme === "dark" ? "#fff" : "#222",
+                    borderColor: theme === "dark" ? "#444" : "#ccc"
+                  }
+                ]}
                 placeholder="Note"
+                placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
                 editable
                 value={note}
                 onChangeText={text => setNote(text)}
@@ -191,7 +203,7 @@ export default function Add(){
             />
             <View style={styles.saveButtonContainer}>
                 <TouchableOpacity onPress={save} style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Save</Text>
+                    <ThemedText style={styles.saveButtonText}>Save</ThemedText>
                 </TouchableOpacity>
             </View>
         </View>

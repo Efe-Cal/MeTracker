@@ -1,13 +1,14 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import * as SQLite from 'expo-sqlite/next';
 import { Tracker, Field } from '@/types';
 import { BooleanField } from '@/components/BooleanField';
 import { TextField } from '@/components/TextField';
-import { TextInput } from 'react-native-gesture-handler';
 import { NumberField } from '@/components/NumberField';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemeContext } from '@/theme/ThemeContext';
 
 export default function DetailsScreen() {
   const { name } = useLocalSearchParams() as { name: string };
@@ -16,6 +17,7 @@ export default function DetailsScreen() {
   const [trackerID, setTrackerID] = useState<number | null>(null);
   const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
   const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
+  const { theme } = useContext(ThemeContext);
   useEffect(() => {
     // Set the screen title to the tracker name
     navigation.setOptions?.({ title: name });
@@ -52,11 +54,6 @@ export default function DetailsScreen() {
       console.error("Tracker ID is not set.");
       return;
     }
-    // get the colmuns of the tracker table
-    const trackerFields = await db.getAllAsync(
-      `PRAGMA table_info(tracker_${trackerID})`
-    );
-    console.log(trackerFields)
     // Assuume table tracker_${trackerID} table exists
     // Insert values into the tracker table
     const columns = fields.map((field) => field.name.trim().replace(/[^a-zA-Z0-9_]/g, '_')).join(", ");
@@ -107,10 +104,10 @@ export default function DetailsScreen() {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: "#fff"}}>
+    <View style={{flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff"}}>
       <View style={styles.container}>
         {fields.length === 0 ? (
-          <Text>No fields defined for this tracker.</Text>
+          <ThemedText>No fields defined for this tracker.</ThemedText>
         ) : (
           fields.map((field) => (
             <View key={field.id} style={styles.fieldContainer}>
@@ -126,7 +123,7 @@ export default function DetailsScreen() {
             handleSave();
             }}
         >
-          <Text style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>Save</Text>
+          <ThemedText style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>Save</ThemedText>
         </TouchableOpacity>
     </View>
   );

@@ -1,13 +1,16 @@
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Link, useFocusEffect } from "expo-router";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useContext, useState } from "react";
 import * as SQLite from 'expo-sqlite';
+import { ThemeContext } from "@/theme/ThemeContext";
+import { Card } from "@/components/Card";
+import { ThemedText } from "@/components/ThemedText";
 
 export default function Index() {
   const [customTrackers, setCustomTrackers] = useState<{ name: string }[]>([]);
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   useFocusEffect(
-    // useCallback ensures stable reference
     useCallback(() => {
       let isActive = true;
       (async () => {
@@ -19,35 +22,48 @@ export default function Index() {
         } catch (e) {
           if (isActive) setCustomTrackers([]);
         }
-
       })();
       return () => { isActive = false; };
     }, [])
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Welcome to the MeTracker.</Text>
-      <Text style={styles.subheader}>This app lets you keep track of your health.</Text>
-      <Text style={styles.sectionTitle}>Prebuilt Trackers</Text>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+      <ThemedText style={[styles.header, { color: theme === "dark" ? "#fff" : "#222" }]}>Welcome to the MeTracker.</ThemedText>
+      <ThemedText style={[styles.subheader, { color: theme === "dark" ? "#ccc" : "#222" }]}>This app lets you keep track of your health.</ThemedText>
+      <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Prebuilt Trackers</ThemedText>
       <Link href="/caffeine/logs" asChild>
-        <TouchableOpacity style={styles.card}><Text style={styles.cardText}>Caffeine Tracker</Text></TouchableOpacity>
+        <TouchableOpacity style={{ width: "100%" }}>
+          <Card style={styles.fullWidthCard}>
+            <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Caffeine Tracker</ThemedText>
+          </Card>
+        </TouchableOpacity>
       </Link>
       <Link href="/toilet/logs" asChild>
-        <TouchableOpacity style={styles.card}><Text style={styles.cardText}>Toilet Logs</Text></TouchableOpacity>
+        <TouchableOpacity style={{ width: "100%" }}>
+          <Card style={styles.fullWidthCard}>
+            <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Toilet Logs</ThemedText>
+          </Card>
+        </TouchableOpacity>
       </Link>
-      <Text style={styles.sectionTitle}>Custom Trackers</Text>
+      <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Custom Trackers</ThemedText>
       {customTrackers.length === 0 && (
-        <Text style={styles.emptyText}>No custom trackers yet.</Text>
+        <ThemedText style={[styles.emptyText, { color: theme === "dark" ? "#888" : "#888" }]}>No custom trackers yet.</ThemedText>
       )}
       {customTrackers.map((tracker, idx) => (
         <Link key={tracker.name + idx} href={`/customTrackers/${tracker.name}`} asChild>
-          <TouchableOpacity style={styles.card}><Text style={styles.cardText}>{tracker.name}</Text></TouchableOpacity>
+          <TouchableOpacity style={{ width: "100%" }}>
+            <Card style={styles.fullWidthCard}>
+              <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>{tracker.name}</ThemedText>
+            </Card>
+          </TouchableOpacity>
         </Link>
       ))}
       <Link href="/createTracker/createMenu" asChild>
-        <TouchableOpacity style={[styles.card, styles.createButton]}>
-          <Text style={[styles.cardText, { color: "#4630EB" }]}>+ Create New Tracker</Text>
+        <TouchableOpacity>
+          <Card style={[styles.createButton, styles.fullWidthCard]}>
+            <ThemedText style={[styles.cardText, { color: "#4630EB" }]}>+ Create New Tracker</ThemedText>
+          </Card>
         </TouchableOpacity>
       </Link>
     </ScrollView>
@@ -60,7 +76,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#f8f9fa"
   },
   header: {
     fontSize: 22,
@@ -80,19 +95,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     alignSelf: "flex-start"
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginVertical: 8,
-    width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
   cardText: {
     fontSize: 18,
     color: "#222",
@@ -107,5 +109,8 @@ const styles = StyleSheet.create({
     color: "#888",
     fontStyle: "italic",
     marginBottom: 8
-  }
+  },
+  fullWidthCard: {
+    width: "100%",
+  },
 });

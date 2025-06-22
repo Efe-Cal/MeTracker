@@ -1,13 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import * as SQLite from 'expo-sqlite';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useContext } from 'react';
 import type { IntakeEntry } from '@/types';
 import { useFocusEffect } from 'expo-router';
 import { Card } from '@/components/Card';
 import { getLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemeContext } from '@/theme/ThemeContext';
 
 const locale = getLocales()[0].languageTag as string;
 function LogCard({log}: {log: IntakeEntry}) {
@@ -17,10 +19,10 @@ function LogCard({log}: {log: IntakeEntry}) {
     return (
         <Card key={timeString} style={styles.card}>
             <View>
-                <Text>{dateString}</Text>
-                <Text>{timeString}</Text>
+                <ThemedText>{dateString}</ThemedText>
+                <ThemedText>{timeString}</ThemedText>
             </View>
-            <Text>{log.amount} mg</Text> 
+            <ThemedText>{log.amount} mg</ThemedText> 
         </Card>
     );
 }
@@ -28,6 +30,7 @@ function LogCard({log}: {log: IntakeEntry}) {
 
 export default function Caffeine(){
     const [intakes, setIntakes] = useState([] as IntakeEntry[]);
+    const { theme } = useContext(ThemeContext);
     
     useFocusEffect(    
         useCallback(() => {
@@ -44,9 +47,9 @@ export default function Caffeine(){
     
     
     return (
-        <View style={styles.container}>
-            <SubstanceDecayGraph intakes={intakes} halflife={4} />
-            <Text>Intakes: </Text>
+        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+            <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} />
+            <ThemedText>Intakes: </ThemedText>
             {intakes.map((intake) => {
                 return (
                     <LogCard key={intake.time} log={intake} />
