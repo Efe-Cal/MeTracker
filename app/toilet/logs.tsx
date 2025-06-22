@@ -72,7 +72,7 @@ const LogCard = ({log}: {log: Log}) => {
 export default function Logs() {
   const [logs, setLogs] = useState([] as Log[]);
   const fetchData = async () => {
-    const db = await SQLite.openDatabaseAsync('MeTracker');
+    const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
     await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
     const allRows = await db.getAllAsync('SELECT * FROM toilet');
     setLogs(allRows as Log[]);

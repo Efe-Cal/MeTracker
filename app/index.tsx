@@ -12,13 +12,14 @@ export default function Index() {
       let isActive = true;
       (async () => {
         try {
-          const db = await SQLite.openDatabaseAsync("Trackers.db");
+          const db = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
           await db.execAsync(`CREATE TABLE IF NOT EXISTS trackers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL);`);
           const rows = await db.getAllAsync<{ name: string }>(`SELECT name FROM trackers`);
           if (isActive) setCustomTrackers(rows || []);
         } catch (e) {
           if (isActive) setCustomTrackers([]);
         }
+
       })();
       return () => { isActive = false; };
     }, [])

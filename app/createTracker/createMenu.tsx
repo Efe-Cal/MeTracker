@@ -30,7 +30,7 @@ export default function createTracker() {
         }
 
         try {
-            const db = await SQLite.openDatabaseAsync("Trackers.db");
+            const db = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
             await db.withTransactionAsync(async () => {
             await db.runAsync(`
                 CREATE TABLE IF NOT EXISTS trackers (
@@ -48,14 +48,50 @@ export default function createTracker() {
                 );
             `);
 
-                const result = await db.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
-                const trackerId = result.lastInsertRowId;
+            const result = await db.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
+            const trackerId = result.lastInsertRowId;
 
-                for (const field of fields) {
-                    await db.runAsync('INSERT INTO fields (trackerId, name, type) VALUES (?, ?, ?);', [trackerId, field.name, field.type]);
-                }
-            });
-            alert("Tracker saved successfully!");
+            for (const field of fields) {
+                await db.runAsync('INSERT INTO fields (trackerId, name, type) VALUES (?, ?, ?);', [trackerId, field.name, field.type]);
+            }
+            const meTrackerDB = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+            // Build columns for CREATE TABLE
+            const columns = fields
+                .filter(f => f.name.trim() !== "")
+                .map(f => {
+                    let sqlType: string;
+                    switch (f.type) {
+                        case "number":
+                            sqlType = "REAL";
+                            break;
+                        case "boolean":
+                            sqlType = "BOOLEAN";
+                            break;
+                        case "text":
+                            sqlType = "TEXT";
+                            break;
+                        case "select":
+                            // For select, we can use TEXT or INTEGER depending on how you want to store the options
+                            sqlType = "TEXT"; // Assuming options will be stored as a comma-separated string or similar
+                            break;
+                        case "substance":
+                            // TODO: Handle select and substance types
+                            sqlType = "TEXT";
+                            break;
+                        default:
+                            sqlType = "TEXT";
+                    }
+                    return `${f.name.trim().replace(/[^a-zA-Z0-9_]/g, '_')} ${sqlType}`;
+                })
+                .join(",\n    ");
+            await meTrackerDB.runAsync(
+                `CREATE TABLE IF NOT EXISTS tracker_${trackerId} (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP${columns ? ",\n    " + columns : ""}
+                );`
+            );
+        });
+        alert("Tracker saved successfully!");
         } catch (error) {
             console.error("Error saving tracker:", error);
             alert("Failed to save tracker. Please try again.");

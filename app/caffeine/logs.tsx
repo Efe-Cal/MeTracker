@@ -32,7 +32,7 @@ export default function Caffeine(){
     useFocusEffect(    
         useCallback(() => {
             const fetchIntakes = async () => {
-                const db = await SQLite.openDatabaseAsync('MeTracker');
+                const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
                 await db.runAsync('CREATE TABLE IF NOT EXISTS caffeine_intakes (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, name TEXT, amount INTEGER)');
                 const result = await db.getAllAsync('SELECT * FROM caffeine_intakes');
                 setIntakes(result as IntakeEntry[]);  

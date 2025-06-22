@@ -54,7 +54,7 @@ export default function Add(){
     const save = async () => {
         setNote("");
         let values = [];
-        const db = await SQLite.openDatabaseAsync('MeTracker');
+        const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
         await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
         if(isUrination){
             values.push(true);

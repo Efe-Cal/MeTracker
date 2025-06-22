@@ -20,7 +20,7 @@ export default function Details(){
         notes:string;
     }>();
     const deleteLog = async ()=>{
-        const db = await SQLite.openDatabaseAsync("MeTracker");
+        const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
         await db.runAsync(`DELETE FROM toilet WHERE time=?`,[log.time]);
         ToastAndroid.show("Log Deleted",ToastAndroid.SHORT);
         db.closeSync();

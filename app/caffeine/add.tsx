@@ -2,7 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { Dropdown } from 'react-native-element-dropdown';
 import { useEffect, useState } from 'react';
 import * as SQLite from 'expo-sqlite';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 
 type Drink = {
     name: string,
@@ -20,7 +20,7 @@ export default function Add() {
 
     const updateDropdown = async () => {
         const data = [{label: 'Create new drink', value: 'create'}];
-        const db = await SQLite.openDatabaseAsync('MeTracker');
+        const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
         // create table if not exists
         await db.runAsync('CREATE TABLE IF NOT EXISTS caffeine_drinks (name TEXT PRIMARY KEY, caffeine INTEGER)');
         const result = await db.getAllAsync('SELECT * FROM caffeine_drinks');
@@ -71,12 +71,15 @@ export default function Add() {
                 />
                 <TouchableOpacity style={styles.saveButton}
                     onPress={async () => {
-                        const db = await SQLite.openDatabaseAsync('MeTracker');
+                        const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
                         await db.runAsync('INSERT INTO caffeine_drinks (name, caffeine) VALUES (?, ?)', [name, parseInt(caffeine)]);
                         updateDropdown();
                         setShowCreate(false);
                         setCaffeine('');
                         setName('');
+                        setValue(name + ";" + caffeine);
+                        setSelectedDrink({name, caffeine: parseInt(caffeine)});
+                        setShowAdd(true);
                 }}>
                     <Text style={styles.saveButtonText}>Save</Text>
                 </TouchableOpacity>
@@ -87,7 +90,7 @@ export default function Add() {
                 <TouchableOpacity style={styles.addButton}
                     onPress={ async () => {
                         if(selectedDrink){
-                            const db = await SQLite.openDatabaseAsync('MeTracker');
+                            const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
                             await db.runAsync('CREATE TABLE IF NOT EXISTS caffeine_intakes (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, name TEXT, amount INTEGER)');
                             await db.runAsync('INSERT INTO caffeine_intakes (name, amount) VALUES (?, ?)', [selectedDrink.name, selectedDrink.caffeine]);
                             console.log("Added", selectedDrink);

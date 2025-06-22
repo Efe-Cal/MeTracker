@@ -12,7 +12,7 @@ export default function Layout() {
   // useEffect(() => {
   //   let isMounted = true;
   //   (async () => {
-  //     const db = await SQLite.openDatabaseAsync("Trackers.db");
+  //     const db = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
   //     const rows = await db.getAllAsync<{ name: string }>(`SELECT name FROM Trackers`);
   //     // rows is an array of objects with a 'name' property
   //     if (isMounted) setCustomScreens(rows || []);
@@ -58,12 +58,6 @@ export default function Layout() {
           name="createTracker"
           options={{
             title: "Create Tracker"
-          }}
-        />
-        <Stack.Screen
-          name="customTrackersList"
-          options={{
-            title: "Custom Trackers"
           }}
         />
         <Stack.Screen

@@ -1,23 +1,91 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
+import { useState, useCallback } from 'react';
+import * as SQLite from 'expo-sqlite/next';
+import { Tracker, Field } from '@/types';
+import { Card } from '@/components/Card';
+import { useFocusEffect } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export default function DetailsScreen() {
-  const { name } = useLocalSearchParams();
+  const { name } = useLocalSearchParams() as { name: string };
+  const [fields, setFields] = useState([] as Field[]);
+  const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
+  // const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
+  
+  useFocusEffect(
+    useCallback(() => {
+      const getTracker = async () => {
+        const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+        const result = await customTrackersDB.getFirstAsync(
+          `SELECT * FROM trackers WHERE name = ?`, [name]) as Tracker;
+        if (!result) {
+          console.error("Tracker not found");
+          return;
+        }
+        console.log("Tracker found:", result);
+        setFields(await customTrackersDB.getAllAsync(`SELECT * FROM fields WHERE trackerId = ?`, [result.id]))
+        console.log("Tracker ID:", result.id);
+
+        const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+        const trackerData = await db.getAllAsync(
+          `SELECT * FROM tracker_${result.id}`
+        );
+        if (trackerData) {
+          setTrackerData(trackerData);
+          console.log("Tracker data:", trackerData);
+        }    
+      };
+      getTracker().catch((error) => {
+        console.error("Error fetching tracker:", error);
+      });
+
+      // No cleanup needed
+      return;
+    }, [name])
+  );
+
   return (
     <View style={{flex: 1, backgroundColor: "#fff"}}>
-      {/* <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Feather name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{name}</Text>
-      </View> */}
-      <View style={styles.container}>
-        
-      </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {trackerData.length === 0 && (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
+            <Text style={{ fontSize: 18 }}>
+              No data available for this tracker. Please add some entries.
+            </Text>
+          </View>
+        )}
+        {trackerData.map((data, index) => (
+          <Card 
+            key={index}
+            style={{ marginBottom: 16, padding: 16, width: '100%', flexDirection: 'column', alignSelf:"center" }}  
+          >
+            {/* // show created_at */}
+            <View style={{borderBottomWidth: 1, borderBottomColor: "#222", paddingBottom: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                {data.created_at
+                  ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+                    " " +
+                    new Date(data.created_at).toLocaleDateString()
+                  : "No date available"}
+              </Text>
+            </View>
+            {/* Render data content here if needed */}
+            {fields.map((field) => (
+              <View key={field.id} style={styles.fieldContainer}>
+                <Text style={{ fontWeight: 'bold' }}>{field.name}:</Text>
+                <Text>{field.type=="boolean" ? 
+                  (data[field.name]?
+                  <FontAwesome name="check-square" size={24} color="green" />
+                  :<FontAwesome name="close" size={24} color="red" />) 
+                  :data[field.name]}</Text>
+              </View>
+            ))}
+          </Card>
+        ))}
+      </ScrollView>
       {/* Floating Plus Button */}
       <FloatingPlusButton onPress={() => router.navigate({ pathname: '/customTrackers/add', params: { name } })} />
     </View>
@@ -25,48 +93,20 @@ export default function DetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 40,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-    minHeight: 80
-  },
-  backButton: {
-    paddingRight: 12,
-    paddingVertical: 4
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginLeft: 4
-  },
   container: {
-    flex: 1,
     justifyContent: 'flex-start',
     alignItems: "flex-start",
     width: "100%",
     padding: 16
   },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    bottom: 24,
-    backgroundColor: '#4630EB',
-    borderRadius: 32,
-    width: 56,
-    height: 56,
+  fieldContainer: {
+    width: "100%",
+    padding: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    zIndex: 10
+    paddingHorizontal: 10,
   }
 });

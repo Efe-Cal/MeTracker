@@ -4,14 +4,12 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false
       }}
     >
       <Stack.Screen name="[name]" options={
         ({ route }) => ({
-          title: route.name || "Custom Tracker",
-          headerShown: true,
-          headerTitleAlign: "center"
+          title: route.params?.name || "Custom Tracker",
+          headerTitleAlign: "left",
         })
       }/>
       <Stack.Screen name="add" />
