@@ -1,5 +1,5 @@
 import { View, Text, ScrollView } from 'react-native';
-import { CartesianChart, useChartPressState, useLinePath, type PointsArray } from "victory-native";
+import { CartesianChart, useAnimatedPath, useChartPressState, useLinePath, type PointsArray } from "victory-native";
 import { Canvas, Circle, Path, Text as SKText, useFont } from "@shopify/react-native-skia";
 import { useDerivedValue, type SharedValue } from "react-native-reanimated";
 import type { IntakeEntry, IntakeData } from "@/types";
@@ -12,7 +12,7 @@ type SDProps = {
     theme?: "light" | "dark";
 };
 
-const interval = 0.25
+const interval = 0.25;
 function timeToNumber(time: string): number {
     let date = new Date(time.replace(" ", "T")+"Z");
     return date.getHours()+Math.floor(date.getMinutes()/15)*interval;
@@ -20,17 +20,19 @@ function timeToNumber(time: string): number {
 function numberToTime(time: number): string {
     let hours: number|string = Math.floor(time);
     let minutes: number|string = Math.floor((time - hours) * 60);
-    if (hours>23) hours-=24;
+    do {
+        if (hours>23){ hours-=24;}
+    }while (hours > 23);
     if (hours < 10) hours = "0" + hours;
     if (minutes < 10) minutes = "0" + minutes;
     return hours + ":" + minutes;
 }
 
-function calculateSubstanceAmount(intakes: IntakeEntry[],halflife:number, currentAmountSetter:React.Dispatch<React.SetStateAction<number>>): IntakeEntry[] {
+function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, currentAmountSetter:React.Dispatch<React.SetStateAction<number>>): IntakeEntry[] {
     let result:IntakeEntry[] = [];
     let data:IntakeData[] = intakes.map((intake) => {
         return {
-            time: timeToNumber(intake.time),
+            time: timeToNumber(intake.time) + (intake.theDayBefore ? 24 : 0), // Convert time to number and add 24 if the intake was recorded the day before
             amount: intake.amount
         };
     });
@@ -45,7 +47,7 @@ function calculateSubstanceAmount(intakes: IntakeEntry[],halflife:number, curren
             }
         });
         const now = new Date();
-        const currentTime = now.getHours()+Math.floor(now.getMinutes()/15)*interval;
+        const currentTime = now.getHours()+Math.floor(now.getMinutes()/15)*interval+24;
         if (currentTime - time < interval && currentTime - time >= 0) {
             console.log("Time: ", numberToTime(time), "Amount: ", amount);
             currentAmountSetter(amount);
@@ -56,32 +58,62 @@ function calculateSubstanceAmount(intakes: IntakeEntry[],halflife:number, curren
 }
 
 function ToolTip({ x, y, yVal, theme }: { x: SharedValue<number>; y: SharedValue<number>; yVal: Readonly<SharedValue<string>>; theme: "light" | "dark" }) {
+    // Extract values from shared values
+    const xVal = x.value;
+    const yValNum = y.value;
+    const font = useFont(require("@/assets/fonts/calibri.ttf"), 20);
     return (
-    <>
-        <Circle cx={x} cy={y} r={4} color={theme === "dark" ? "#fff" : "black"}/>
-        <SKText x={x} y={x} text={yVal} font={useFont(require("@/assets/fonts/calibri.ttf"),20)} color={theme === "dark" ? "#fff" : "black"}/>
-    </>
+        <>
+            <Circle cx={x} cy={y} r={6} color={theme === "dark" ? "#fff" : "black"}/>
+            <SKText x={xVal + 10} y={yValNum - 10} text={yVal} font={font} color={theme === "dark" ? "#fff" : "black"}/>
+        </>
     );
 }
 
 function MyCustomLine({ points, theme }: { points: PointsArray, theme: "light" | "dark" }) {
     const { path } = useLinePath(points, { curveType: "monotoneX" });
-    return <Path path={path} style="stroke" strokeWidth={3} color={theme === "dark" ? "#fff" : "black"}/>;
+    const animPath = useAnimatedPath(path);
+    return <Path path={animPath} style="stroke" strokeWidth={3} color={theme === "dark" ? "#fff" : "black"}/>;
 }
 
 export default function SubstanceDecayGraph({intakes, halflife, theme: themeProp}:SDProps) {
     const context = useContext(ThemeContext);
     const theme = themeProp || context.theme || "light";
-    const [DATA, setData] = useState<any[]>([{time: "0", amount: 0}]); 
+    const [substanceData, setSubstanceData] = useState<any[]>([{time: "0", amount: 0}]); 
     const [currentAmount, setCurrentAmount] = useState(0);
     useEffect(() => {
         let isMounted = true;
 
         const fetchData = async () => {
             try {
+                intakes.sort(day => {
+                    const dateA = new Date(day.time.replace("T", " ") + "Z");
+                    return dateA.getTime();
+                    }
+                ).reverse().filter(intake =>{
+                    // only inteaks within the last 48 hours
+                    const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
+                    const now = new Date();
+                    const diff = now.getTime() - intakeDate.getTime();
+                    return diff <= 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+                    }
+                ).map(intake => {
+                    const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
+                    const now = new Date();
+                    if (intakeDate.getDate() < now.getDate()) {
+                        intake.theDayBefore = true; // Mark as the day before if the date is earlier than today
+                    }
+                    return {
+                        time: intake.time,
+                        amount: intake.amount,
+                        theDayBefore: intake.theDayBefore || false // Ensure the property exists
+                    };
+                }
+                    );
+                console.log("Intakes: ", intakes);
                 const result = calculateSubstanceAmount(intakes, halflife, setCurrentAmount);
                 if (isMounted) {
-                    setData(result);
+                    setSubstanceData(result);
                 }
             } catch (error) {
                 console.error('Error calculating substance amount:', error);
@@ -94,16 +126,13 @@ export default function SubstanceDecayGraph({intakes, halflife, theme: themeProp
             isMounted = false;
         };
     }, [intakes, halflife]);
-    
-    // const DATA = useMemo(() => calculateSubstanceAmount(intakes, halflife), [intakes, halflife]);
-    // const DATA = calculateSubstanceAmount(intakes, halflife);
+
     const { state, isActive } = useChartPressState({ x: "0", y: { amount: 0 } });
-
     const value = useDerivedValue(() => {
-        let val = state.y.amount.value.value.toString() + " mg @ "+state.x.value.value;
+        let val = state.y.amount.value.value.toString() + " mg @ " + state.x.value.value;
         return val;
-    },[state.y.amount.value.value]);
-
+    }, [state.y.amount.value.value, state.x.value.value]);
+    var days = 3
     return (
         <View style={{
             justifyContent: "flex-start",
@@ -113,29 +142,29 @@ export default function SubstanceDecayGraph({intakes, halflife, theme: themeProp
             <Canvas style={{ width: 400, height: 50 }}>
                 <SKText text={value} font={useFont(require("@/assets/fonts/calibri.ttf"),20)} x={10} y={20} color={theme === "dark" ? "#fff" : "black"} />
             </Canvas>
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[0]?(2000*timeToNumber(intakes[0].time)/48)-50:0,y:0}}>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(timeToNumber(intakes[intakes.length-1].time)+24)/(days*24))-50:0,y:0}}>
                 <View style={{height: 250, width: 2000}}>
-                <CartesianChart data={DATA} xKey="time" yKeys={["amount"]} 
-                    axisOptions={{
-                        font: useFont(require("@/assets/fonts/calibri.ttf"),12),
-                        tickCount:{x:48,y:5},
-                        formatXLabel: (value) => value.toString(),
-                        lineColor: theme === "dark" ? "#fff" : "black",
-                        labelColor: theme === "dark" ? "#fff" : "black",
-                    }}
-                    domain={{y: [0, 350],x:[0,48/interval]}}
-                    chartPressState={state}
-                >
-                    {({ points }) => (
-                        <>
-                            <MyCustomLine points={points.amount} theme={theme} />
-                            {isActive ? (
-                                <ToolTip x={state.x.position} y={state.y.amount.position} yVal={value} theme={theme} />
-                            ) : null}
-
-                        </>
-                    )}
-                </CartesianChart>
+                    <CartesianChart data={substanceData} xKey="time" yKeys={["amount"]} 
+                        axisOptions={{
+                            font: useFont(require("@/assets/fonts/calibri.ttf"),12),
+                            tickCount:{x:48/2,y:5},
+                            formatXLabel: (value) => {
+                                return value.toString()},
+                            lineColor: theme === "dark" ? "#fff" : "black",
+                            labelColor: theme === "dark" ? "#fff" : "black",
+                        }}
+                        domain={{y: [0, 350],x:[0,days*24/interval]}}
+                        chartPressState={state}
+                    >
+                        {({ points }) => (
+                            <>
+                                <MyCustomLine points={points.amount} theme={theme} />
+                                {isActive ? (
+                                    <ToolTip x={state.x.position} y={state.y.amount.position} yVal={value} theme={theme} />
+                                ) : null}
+                            </>
+                        )}
+                    </CartesianChart>
                 </View>
             </ScrollView>
         </View>

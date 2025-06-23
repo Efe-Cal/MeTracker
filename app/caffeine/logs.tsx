@@ -38,9 +38,8 @@ export default function Caffeine(){
                 const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
                 await db.runAsync('CREATE TABLE IF NOT EXISTS caffeine_intakes (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, name TEXT, amount INTEGER)');
                 const result = await db.getAllAsync('SELECT * FROM caffeine_intakes');
-                setIntakes(result as IntakeEntry[]);  
+                setIntakes(result as IntakeEntry[]);
             }
-            
             fetchIntakes();
         }, [])
     );
@@ -49,8 +48,8 @@ export default function Caffeine(){
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} />
-            <ThemedText>Intakes: </ThemedText>
-            {intakes.map((intake) => {
+            <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
+            {intakes.reverse().map((intake) => {
                 return (
                     <LogCard key={intake.time} log={intake} />
                 );

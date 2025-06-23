@@ -1,6 +1,7 @@
 export type IntakeEntry = {
     time: string;
     amount: number;
+    theDayBefore?: boolean; // Indicates if the intake was recorded the day before
 };
 export type IntakeData={
     time: number;
