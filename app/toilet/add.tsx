@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, TextInput, ToastAndroid, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Image, TextInput, ToastAndroid, StyleSheet, ScrollView } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { useState, useContext } from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -91,7 +91,6 @@ export default function Add(){
         ToastAndroid.show("Saved", ToastAndroid.SHORT);
 
     }
-    //TODO: Add ScrollView
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
             <View style={styles.sectionHeader}>

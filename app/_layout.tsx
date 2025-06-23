@@ -1,30 +1,15 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
-import * as SQLite from 'expo-sqlite';
-import { useEffect, useState, useRef, useContext } from 'react';
+import {  useRef } from 'react';
 import { Feather } from '@expo/vector-icons';
-import { router, useNavigation } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 import { ThemeProvider, ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 
 export default function Layout() {
-  const [customScreens, setCustomScreens] = useState<{ name: string }[]>([]);
   const themeContextRef = useRef<{ theme: string; toggleTheme: () => void } | null>(null);
 
-  // useEffect(() => {
-  //   let isMounted = true;
-  //   (async () => {
-  //     const db = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
-  //     const rows = await db.getAllAsync<{ name: string }>(`SELECT name FROM Trackers`);
-  //     // rows is an array of objects with a 'name' property
-  //     if (isMounted) setCustomScreens(rows || []);
-  //   })();
-  //   return () => { isMounted = false; };
-  // }, []);
-  useEffect(() => {
-      setCustomScreens([{name: "a"}, {name: "b"}]);
-    }, []);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>

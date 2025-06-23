@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useLocalSearchParams, } from 'expo-router';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { useState, useCallback, useContext } from 'react';
@@ -15,7 +15,6 @@ export default function DetailsScreen() {
   const { name } = useLocalSearchParams() as { name: string };
   const [fields, setFields] = useState([] as Field[]);
   const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
-  // const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
   const { theme } = useContext(ThemeContext);
   
   useFocusEffect(
@@ -44,8 +43,6 @@ export default function DetailsScreen() {
       getTracker().catch((error) => {
         console.error("Error fetching tracker:", error);
       });
-
-      // No cleanup needed
       return;
     }, [name])
   );

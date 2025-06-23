@@ -39,7 +39,7 @@ export default function Details(){
                 }}>
                     <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "black"} />
                 </TouchableOpacity>
-                <ThemedText style={styles.headerTitle}>
+                <ThemedText style={[styles.headerTitle, {color: theme === "dark" ? "#fff" : "#000"}]}>
                     {date}
                 </ThemedText>
                 <View style={{flex:1}}></View>
@@ -64,7 +64,7 @@ export default function Details(){
             {/* Urination */}
             {log.urination=="1"?
             <View style={styles.section}>
-                <View style={styles.sectionHeader}>
+                <View style={[styles.sectionHeader, {borderBottomColor: theme === "dark" ? "#fff" : "#000"}]}>
                     <ThemedText style={styles.sectionHeaderText}>Urination</ThemedText>
                 </View>
                 <View style={styles.row}>
@@ -80,7 +80,7 @@ export default function Details(){
             {/* BM */}
             {log.isBM=="1"?
             <View style={styles.section}>
-                <View style={styles.sectionHeader}>
+                <View style={[styles.sectionHeader, {borderBottomColor: theme === "dark" ? "#fff" : "#000"}]}>
                     <ThemedText style={styles.sectionHeaderText}>Bowel Movement</ThemedText>
                 </View>
                 <View style={styles.row}>
@@ -142,7 +142,6 @@ const styles = StyleSheet.create({
         padding: 10
     },
     headerTitle: {
-        color: '#333',
         fontSize: 20,
         fontWeight: 'bold',
         marginLeft: 10
@@ -173,7 +172,6 @@ const styles = StyleSheet.create({
         fontSize: 20
     },
     section: {
-        marginTop: -10,
         padding: 20
     },
     sectionHeader: {

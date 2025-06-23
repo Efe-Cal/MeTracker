@@ -15,7 +15,6 @@ export default function DetailsScreen() {
   const navigation = useNavigation();
   const [fields, setFields] = useState([] as Field[]);
   const [trackerID, setTrackerID] = useState<number | null>(null);
-  const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
   const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
   const { theme } = useContext(ThemeContext);
   useEffect(() => {
@@ -33,13 +32,6 @@ export default function DetailsScreen() {
       setFields(await customTrackersDB.getAllAsync(`SELECT * FROM fields WHERE trackerId = ?`, [result.id]))
       console.log("Tracker ID:", result.id);
       setTrackerID(result.id);
-      const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-      const trackerData = await db.getAllAsync(
-        `SELECT * FROM tracker_${result.id}`
-      );
-      if (trackerData) {
-        setTrackerData(trackerData);
-      }
     };
     getTracker().catch((error) => {
       console.error("Error fetching tracker:", error);

@@ -27,11 +27,11 @@ export type Log = {
 
 const LogCard = ({log}: {log: Log}) => {
   const date = new Date(log.time).toDateString();
+  const { theme } = useContext(ThemeContext); // Add theme context
 
   return (
     <TouchableOpacity activeOpacity={1} onPress={()=>{
       const url:Href=`/toilet/details?time=${log.time}&urination=${log.urination}&urinationColor=${log.urinationColor?log.urinationColor.replace("#",""):null}&isPainUrination=${log.isPainUrination}&isBM=${log.isBM}&BMColor=${log.BMColor?log.BMColor.replace("#",""):null}&BMshape=${log.BMshape}&isPainBM=${log.isPainBM}&isSmell=${log.isSmell}&photo=${log.photo}&notes=${log.notes}`;
-      console.log(url);
       router.navigate(url);
       }}>
     <Card style={styles.card}>
@@ -46,7 +46,7 @@ const LogCard = ({log}: {log: Log}) => {
           <View style={styles.iconRow}>
             <View style={[styles.colorBox, {backgroundColor:log.urinationColor}]}></View>
             {log.isPainUrination?
-            <Ionicons name="warning-outline" size={24} color="black" style={styles.icon}/>
+            <Ionicons name="warning-outline" size={24} color={theme === "dark" ? "white" : "black"} style={styles.icon}/>
             :null}
           </View>
           :<View style={styles.iconRowEmpty}></View>
@@ -56,7 +56,7 @@ const LogCard = ({log}: {log: Log}) => {
             <View style={styles.iconRow}>
               <View style={[styles.colorBox, {backgroundColor:log.BMColor}]}></View>
               {log.isPainBM?
-              <Ionicons name="warning-outline" size={24} color="black" style={styles.icon}/>
+              <Ionicons name="warning-outline" size={24} color={theme === "dark" ? "white" : "black"} style={styles.icon}/>
               :null}
               {log.isSmell?
               <Ionicons name="cloud" size={24} color="green" style={styles.icon}/>
@@ -79,7 +79,6 @@ export default function Logs() {
     await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
     const allRows = await db.getAllAsync('SELECT * FROM toilet');
     setLogs(allRows as Log[]);
-    console.log(allRows);
     db.closeSync();
   };
   useFocusEffect(
@@ -88,7 +87,6 @@ export default function Logs() {
     }, [])
   );
 
-  console.log(logs);
   return (
     <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
       {/* <TouchableOpacity onPress={()=>fetchData()}><Text>Refresh</Text></TouchableOpacity> */}

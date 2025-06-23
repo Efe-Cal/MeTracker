@@ -17,7 +17,7 @@ function LogCard({log}: {log: IntakeEntry}) {
     const dateString = time.toLocaleDateString(locale,{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     const timeString = time.toLocaleTimeString(locale,{ hour: '2-digit', minute: '2-digit' });
     return (
-        <Card key={timeString} style={styles.card}>
+        <Card key={timeString}>
             <View>
                 <ThemedText>{dateString}</ThemedText>
                 <ThemedText>{timeString}</ThemedText>
@@ -62,9 +62,6 @@ export default function Caffeine(){
 }
 
 const styles = StyleSheet.create({
-    card: {
-        // Add card-specific styles here if needed
-    },
     container: {
         flex: 1,
         flexDirection: 'column',
