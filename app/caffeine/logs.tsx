@@ -44,12 +44,11 @@ export default function Caffeine(){
         }, [])
     );
     
-    
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} />
             <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
-            {intakes.reverse().map((intake) => {
+            {intakes.reverse().slice(0,11).map((intake) => {
                 return (
                     <LogCard key={intake.time} log={intake} />
                 );

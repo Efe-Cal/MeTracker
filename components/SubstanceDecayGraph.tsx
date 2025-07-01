@@ -5,6 +5,7 @@ import { useDerivedValue, type SharedValue } from "react-native-reanimated";
 import type { IntakeEntry, IntakeData } from "@/types";
 import { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 type SDProps = {
     intakes: IntakeEntry[];
@@ -47,7 +48,7 @@ function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, curre
             }
         });
         const now = new Date();
-        const currentTime = now.getHours()+Math.floor(now.getMinutes()/15)*interval+24;
+        const currentTime = now.getHours()+Math.floor(now.getMinutes()/15)*interval +  (intakes[intakes.length-1] && intakes[intakes.length-1].theDayBefore ? 24 : 0);
         if (currentTime - time < interval && currentTime - time >= 0) {
             console.log("Time: ", numberToTime(time), "Amount: ", amount);
             currentAmountSetter(amount);
@@ -86,32 +87,34 @@ export default function SubstanceDecayGraph({intakes, halflife, theme: themeProp
 
         const fetchData = async () => {
             try {
-                intakes.sort(day => {
-                    const dateA = new Date(day.time.replace("T", " ") + "Z");
-                    return dateA.getTime();
-                    }
-                ).reverse().filter(intake =>{
-                    // only inteaks within the last 48 hours
-                    const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
-                    const now = new Date();
-                    const diff = now.getTime() - intakeDate.getTime();
-                    return diff <= 48 * 60 * 60 * 1000; // 48 hours in milliseconds
-                    }
-                ).map(intake => {
-                    const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
-                    const now = new Date();
-                    if (intakeDate.getDate() < now.getDate()) {
-                        intake.theDayBefore = true; // Mark as the day before if the date is earlier than today
-                    }
-                    return {
-                        time: intake.time,
-                        amount: intake.amount,
-                        theDayBefore: intake.theDayBefore || false // Ensure the property exists
-                    };
-                }
-                    );
-                console.log("Intakes: ", intakes);
-                const result = calculateSubstanceAmount(intakes, halflife, setCurrentAmount);
+                const filteredIntakes = intakes
+                    .sort((a, b) => {
+                        const dateA = new Date(a.time.replace("T", " ") + "Z");
+                        const dateB = new Date(b.time.replace("T", " ") + "Z");
+                        return dateA.getTime() - dateB.getTime();
+                    })
+                    .reverse()
+                    .filter(intake => {
+                        // only intakes within the last 48 hours
+                        const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
+                        const now = new Date();
+                        const diff = now.getTime() - intakeDate.getTime();
+                        return diff <= 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+                    })
+                    .map(intake => {
+                        const intakeDate = new Date(intake.time.replace("T", " ") + "Z");
+                        const now = new Date();
+                        if (intakeDate.getDate() < now.getDate()) {
+                            intake.theDayBefore = true; // Mark as the day before if the date is earlier than today
+                        }
+                        return {
+                            time: intake.time,
+                            amount: intake.amount,
+                            theDayBefore: intake.theDayBefore || false // Ensure the property exists
+                        };
+                    });
+
+                const result = calculateSubstanceAmount(filteredIntakes, halflife, setCurrentAmount);
                 if (isMounted) {
                     setSubstanceData(result);
                 }
@@ -138,11 +141,18 @@ export default function SubstanceDecayGraph({intakes, halflife, theme: themeProp
             justifyContent: "flex-start",
             flexDirection: 'column',
         }}>
-            <Text style={{fontSize: 20, color: theme === "dark" ? "#fff" : "black"}}>Current amount: ~{currentAmount} mg</Text>
+            <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            }}>
+                <Text style={{fontSize: 20, color: theme === "dark" ? "#fff" : "black"}}>Current amount: ~{currentAmount} mg</Text>
+                <Ionicons name="settings-sharp" size={20} color={theme==="dark"?"white":"black"} />
+            </View>
             <Canvas style={{ width: 400, height: 50 }}>
                 <SKText text={value} font={useFont(require("@/assets/fonts/calibri.ttf"),20)} x={10} y={20} color={theme === "dark" ? "#fff" : "black"} />
             </Canvas>
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(timeToNumber(intakes[intakes.length-1].time)+24)/(days*24))-50:0,y:0}}>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(timeToNumber(intakes[intakes.length-1].time)+(intakes[intakes.length-1].theDayBefore?24:0))/(days*24))-50:0,y:0}}>
                 <View style={{height: 250, width: 2000}}>
                     <CartesianChart data={substanceData} xKey="time" yKeys={["amount"]} 
                         axisOptions={{
