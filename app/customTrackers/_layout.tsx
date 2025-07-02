@@ -26,7 +26,7 @@ export default function Layout() {
     >
       <Stack.Screen name="[name]" options={
         ({ route }) => ({
-          title: route.params?.name || "Custom Tracker",
+          title: decodeURIComponent(route.params?.name) || "Custom Tracker",
           headerTitleAlign: "left",
         })
       }/>

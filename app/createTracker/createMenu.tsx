@@ -10,18 +10,21 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 type FieldType = "text" | "number" | "boolean" | "select" | "substance";
 
-type Field = {
+type TrackerField = {
     name: string;
     type: FieldType;
+    options?: string[];
 }
 
 export default function createTracker() {
     const [trackerName, setTrackerName] = useState("");
-    const [fields, setFields] = useState<Field[]>([]);
+    const [fields, setFields] = useState<TrackerField[]>([]);
     const [showCreate, setShowCreate] = useState(false);
     const [fieldType, setFieldType] = useState<FieldType>("text");
     const [fieldName, setFieldName] = useState("");
     const { theme } = useContext(ThemeContext);
+    const [showCreateSelectOption, setShowCreateSelectOption] = useState(false);
+    const [selectOptions, setSelectOptions] = useState<string[]>([]);
 
     async function saveTracker() {
         if (trackerName.trim() === "") {
@@ -34,15 +37,15 @@ export default function createTracker() {
         }
 
         try {
-            const db = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
-            await db.withTransactionAsync(async () => {
-            await db.runAsync(`
+            const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+            await customTrackersDB.withTransactionAsync(async () => {
+            await customTrackersDB.runAsync(`
                 CREATE TABLE IF NOT EXISTS trackers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL
                 );
             `);
-            await db.runAsync(`
+            await customTrackersDB.runAsync(`
                 CREATE TABLE IF NOT EXISTS fields (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     trackerId INTEGER NOT NULL,
@@ -52,11 +55,11 @@ export default function createTracker() {
                 );
             `);
 
-            const result = await db.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
+            const result = await customTrackersDB.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
             const trackerId = result.lastInsertRowId;
 
             for (const field of fields) {
-                await db.runAsync('INSERT INTO fields (trackerId, name, type) VALUES (?, ?, ?);', [trackerId, field.name, field.type]);
+                await customTrackersDB.runAsync('INSERT INTO fields (trackerId, name, type) VALUES (?, ?, ?);', [trackerId, field.name, field.type]);
             }
             const meTrackerDB = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
             // Build columns for CREATE TABLE
@@ -75,8 +78,7 @@ export default function createTracker() {
                             sqlType = "TEXT";
                             break;
                         case "select":
-                            // For select, we can use TEXT or INTEGER depending on how you want to store the options
-                            sqlType = "TEXT"; // Assuming options will be stored as a comma-separated string or similar
+                            sqlType = "TEXT"; // Select fields will be stored as TEXT, options will be in a separate table
                             break;
                         case "substance":
                             // TODO: Handle select and substance types
@@ -94,7 +96,36 @@ export default function createTracker() {
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP${columns ? ",\n    " + columns : ""}
                 );`
             );
+            await customTrackersDB.runAsync(`
+                CREATE TABLE IF NOT EXISTS tracker_${trackerId}_select_options (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fieldId INTEGER NOT NULL,
+                    option TEXT NOT NULL,
+                    FOREIGN KEY (fieldId) REFERENCES fields(id)
+                );
+            `);
+            for (const field of fields) {
+                if (field.type === "select" && field.options && field.options.length > 0) {
+                    // Fetch the correct fieldId for this field
+                    const fieldIdResult = await customTrackersDB.getFirstAsync(
+                        `SELECT id FROM fields WHERE trackerId = ? AND name = ?`,
+                        [trackerId, field.name]
+                    ) as { id: number } | undefined;
+                    const fieldID = fieldIdResult?.id;
+                    if (fieldID) {
+                        for (const option of field.options) {
+                            if (option.trim() !== "") {
+                                await customTrackersDB.runAsync(
+                                    `INSERT INTO tracker_${trackerId}_select_options (fieldId, option) VALUES (?, ?);`,
+                                    [fieldID, option]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
         });
+
         ToastAndroid.show("Tracker saved successfully!", ToastAndroid.SHORT);
         } catch (error) {
             console.error("Error saving tracker:", error);
@@ -185,8 +216,58 @@ export default function createTracker() {
                             valueField="value"
                             onChange={item => {
                                 setFieldType(item.value as FieldType);
+                                if (item.value === "select") {
+                                    setShowCreateSelectOption(true);
+                                    if (selectOptions.length === 0) setSelectOptions([""]);
+                                } else {
+                                    setShowCreateSelectOption(false);
+                                    setSelectOptions([]);
+                                }
                             }}
                         />
+                        { showCreateSelectOption &&
+                            <View style={{marginTop: 10}}>
+                                {selectOptions.map((option, idx) => (
+                                    <TextInput
+                                        key={idx}
+                                        placeholder={`Option ${idx + 1}`}
+                                        value={option}
+                                        onChangeText={text => {
+                                            const newOptions = [...selectOptions];
+                                            newOptions[idx] = text;
+                                            // If last input is filled, add a new empty input
+                                            if (
+                                                idx === selectOptions.length - 1 &&
+                                                text.trim() !== ""
+                                            ) {
+                                                newOptions.push("");
+                                            }
+                                            // Remove extra empty trailing inputs except the last one
+                                            let lastNonEmpty = newOptions.length - 1;
+                                            while (
+                                                lastNonEmpty > 0 &&
+                                                newOptions[lastNonEmpty].trim() === "" &&
+                                                newOptions[lastNonEmpty - 1].trim() === ""
+                                            ) {
+                                                newOptions.pop();
+                                                lastNonEmpty--;
+                                            }
+                                            setSelectOptions(newOptions);
+                                        }}
+                                        style={[
+                                            styles.input,
+                                            {
+                                                backgroundColor: theme === "dark" ? "#222" : "#fff",
+                                                color: theme === "dark" ? "#fff" : "#222",
+                                                borderColor: theme === "dark" ? "#444" : "#ccc",
+                                                marginBottom: 5,
+                                            }
+                                        ]}
+                                        placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                                    />
+                                ))}
+                            </View>
+                        }
                         <TouchableOpacity
                             style={[
                                 styles.saveFieldButton,
@@ -197,9 +278,22 @@ export default function createTracker() {
                                     ToastAndroid.show("Field name cannot be empty", ToastAndroid.SHORT);
                                     return;
                                 }
-                                setFields([...fields, {name: fieldName, type: fieldType}]);
+                                if (fieldType === "select" && selectOptions.length === 0) {
+                                    ToastAndroid.show("Select field must have at least one option", ToastAndroid.SHORT);
+                                    return;
+                                }
+                                if (fieldType === "select"){
+                                    setFields([...fields, {name: fieldName, type: fieldType, options: selectOptions}]);
+                                }
+                                else{ 
+                                    setFields([...fields, {name: fieldName, type: fieldType}]);
+                                }
                                 setShowCreate(false);
                                 setFieldName('');
+                                setFieldType("text");
+                                setSelectOptions([]);
+                                setShowCreateSelectOption(false);
+                                ToastAndroid.show("Field added successfully", ToastAndroid.SHORT);
                             }}>
                             <ThemedText style={styles.buttonText}>Save Field</ThemedText>
                         </TouchableOpacity>

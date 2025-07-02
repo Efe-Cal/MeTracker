@@ -17,4 +17,5 @@ export type Field = {
     trackerId: number;
     name: string;
     type: "text" | "number" | "boolean" | "select" | "substance";
+    options?: string[]; // For select fields, options can be provided
 };

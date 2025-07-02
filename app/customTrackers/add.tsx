@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useState, useContext } from 'react';
 import * as SQLite from 'expo-sqlite/next';
@@ -9,6 +9,7 @@ import { TextField } from '@/components/TextField';
 import { NumberField } from '@/components/NumberField';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
+import SelectField from '@/components/SelectField';
 
 export default function DetailsScreen() {
   const { name } = useLocalSearchParams() as { name: string };
@@ -89,9 +90,16 @@ export default function DetailsScreen() {
             onValueChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}
           />
         );
-      // Add cases for other field types as needed
+      case "select":
+        if (!trackerID) {
+          // console.error("Tracker ID is not set for select field.");
+          return null;
+        }
+        return (
+           <SelectField label={field.name} fieldName={field.name} trackerID={trackerID} onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}/>
+        );
       default:
-        return <Text key={field.id}>Unsupported field type: {field.type}</Text>;
+        return <ThemedText key={field.id}>Unsupported field type: {field.type}</ThemedText>;
     }
   }
 
@@ -109,13 +117,13 @@ export default function DetailsScreen() {
         )}
       </View> 
         <TouchableOpacity
-            style={{ padding: 16, backgroundColor: '#007BFF', borderRadius: 8, margin: 16 }}
+            style={{ padding: 8, backgroundColor: '#4630EB', borderRadius: 8, margin: 16, }}
             onPress={() => {
             // Handle save logic here
             handleSave();
             }}
         >
-          <ThemedText style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>Save</ThemedText>
+          <ThemedText style={{ color: '#fff', textAlign: 'center', fontSize: 16, fontWeight:"bold" }}>Save</ThemedText>
         </TouchableOpacity>
     </View>
   );
