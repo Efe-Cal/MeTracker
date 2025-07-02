@@ -22,7 +22,7 @@ function LogCard({log}: {log: IntakeEntry}) {
                 <ThemedText>{dateString}</ThemedText>
                 <ThemedText>{timeString}</ThemedText>
             </View>
-            <ThemedText>{log.amount} mg</ThemedText> 
+            <ThemedText>{log.amount} mg</ThemedText>
         </Card>
     );
 }
@@ -46,7 +46,7 @@ export default function Caffeine(){
     
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
-            <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} />
+            <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName='caffeine'/>
             <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
             {intakes.reverse().slice(0,11).map((intake) => {
                 return (

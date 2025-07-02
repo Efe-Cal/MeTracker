@@ -12,50 +12,45 @@ type SDProps = {
     intakes: IntakeEntry[];
     halflife?: number;
     theme?: "light" | "dark";
-    substanceName: string; // <-- Add this prop
+    substanceName: string;
 };
 
 const interval = 0.25;
-function timeToNumber(time: string): number {
+function toTimeObj(time: string): Date {
     let date = new Date(time.replace(" ", "T")+"Z");
-    return date.getHours()+Math.floor(date.getMinutes()/15)*interval;
-}
-function numberToTime(time: number): string {
-    let hours: number|string = Math.floor(time);
-    let minutes: number|string = Math.floor((time - hours) * 60);
-    do {
-        if (hours>23){ hours-=24;}
-    }while (hours > 23);
-    if (hours < 10) hours = "0" + hours;
-    if (minutes < 10) minutes = "0" + minutes;
-    return hours + ":" + minutes;
+    return date;
 }
 
 function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, currentAmountSetter:React.Dispatch<React.SetStateAction<number>>): IntakeEntry[] {
     let result:IntakeEntry[] = [];
     let data:IntakeData[] = intakes.map((intake) => {
         return {
-            time: timeToNumber(intake.time) + (intake.theDayBefore ? 24 : 0), // Convert time to number and add 24 if the intake was recorded the day before
+            time: toTimeObj(intake.time),
             amount: intake.amount
         };
     });
-    Array.from({length: 96/interval+1}, (_, i) => {
-        let time = i * interval;
+    let multiday= false;
+    if (intakes.length > 0 && intakes[intakes.length-1].theDayBefore) {
+        multiday = true;
+    }
+    Array.from({length: 48/interval+1}, (_, i) => {
+        let time = new Date();
+        time.setHours(Math.floor(i * interval), 0, 0, 0);
+        time.setMinutes(Math.round((i * interval % 1) * 60));
         let amount = 0;
         data.forEach((intake) => {
-            if (time >= intake.time){
-                amount += intake.amount * Math.pow(0.5, (time - intake.time) / halflife);
+            if (intake.time.getTime() <= time.getTime()) {
+                amount += intake.amount * Math.pow(0.5, ((time.getTime() - intake.time.getTime())/(1000*60*60)) / halflife);
                 amount = Math.floor(amount);
                 if (amount < 1) amount = 0;
             }
         });
         const now = new Date();
-        const currentTime = now.getHours()+Math.floor(now.getMinutes()/15)*interval +  (intakes[intakes.length-1] && intakes[intakes.length-1].theDayBefore ? 24 : 0);
-        if (currentTime - time < interval && currentTime - time >= 0) {
-            console.log("Time: ", numberToTime(time), "Amount: ", amount);
+        if (now.getTime() - time.getTime() < interval*(1000*3600) && now.getTime() - time.getTime() >= 0) {
+            console.log("Time: ", time, "Amount: ", amount);
             currentAmountSetter(amount);
         }
-        result.push({time: numberToTime(time), amount: amount});
+        result.push({time: String(time.getHours())+ "."+ (time.getMinutes()==0?"00":time.getMinutes())+" " + (time.getDay()===new Date().getDay()?"":(time.getDay()===new Date().getDay()-1)?"Y":"T"), amount: amount});
     });
     return result;
 }
@@ -171,7 +166,6 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     const [ isModalVisible, setIsModalVisible ] = useState(false);
     const [halflife, setHalflife] = useState(halflifeProp);
     const [halflifeInput, setHalflifeInput] = useState(halflifeProp?.toString());
-
     // Load halflife from AsyncStorage on mount or when substanceName changes
     useEffect(() => {
         const loadHalflife = async () => {
@@ -257,7 +251,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
         let val = state.y.amount.value.value.toString() + " mg @ " + state.x.value.value;
         return val;
     }, [state.y.amount.value.value, state.x.value.value]);
-    var days = 3
+    var days = 1.5;
     return (
         <View style={{
             justifyContent: "flex-start",
@@ -296,18 +290,18 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
             <Canvas style={{ width: 400, height: 50 }}>
                 <SKText text={value} font={useFont(require("@/assets/fonts/calibri.ttf"),20)} x={10} y={20} color={theme === "dark" ? "#fff" : "black"} />
             </Canvas>
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(timeToNumber(intakes[intakes.length-1].time)+(intakes[intakes.length-1].theDayBefore?24:0))/(days*24))-50:0,y:0}}>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(toTimeObj(intakes[intakes.length-1].time).getHours()+(intakes[intakes.length-1].theDayBefore?24:0))/(days*24))-50:0,y:0}}>
                 <View style={{height: 250, width: 2000}}>
                     <CartesianChart data={substanceData} xKey="time" yKeys={["amount"]} 
                         axisOptions={{
                             font: useFont(require("@/assets/fonts/calibri.ttf"),12),
-                            tickCount:{x:48/2,y:5},
+                            tickCount:{x:24,y:5},
                             formatXLabel: (value) => {
                                 return value.toString()},
                             lineColor: theme === "dark" ? "#fff" : "black",
                             labelColor: theme === "dark" ? "#fff" : "black",
                         }}
-                        domain={{y: [0, 350],x:[0,days*24/interval]}}
+                        domain={{y: [0, 250],x:[0,days*24/interval]}}
                         chartPressState={state}
                     >
                         {({ points }) => (
