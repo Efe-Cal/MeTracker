@@ -48,11 +48,12 @@ export default function Add() {
                     borderColor: theme === "dark" ? "#444" : "gray"
                   }
                 ]}
+                activeColor={theme === "dark" ? "#333" : "#e0e0e0"}
                 containerStyle={{
                   backgroundColor: theme === "dark" ? "#222" : "#fff",
                   borderColor: theme === "dark" ? "#444" : "gray"
                 }}
-                placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
+                placeholderStyle={{ color: theme === "dark" ? "#555" : "#aaa" }}
                 selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                 itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                 labelField="label"

@@ -1,11 +1,12 @@
 import { useState, useContext } from "react";
-import { View, TextInput, StyleSheet, ScrollView } from "react-native";
+import { View, TextInput, StyleSheet, ScrollView, ToastAndroid } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite';
 import { router } from "expo-router";
 import { ThemeContext } from "@/theme/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
+import Entypo from '@expo/vector-icons/Entypo';
 
 type FieldType = "text" | "number" | "boolean" | "select" | "substance";
 
@@ -24,11 +25,11 @@ export default function createTracker() {
 
     async function saveTracker() {
         if (trackerName.trim() === "") {
-            alert("Tracker name cannot be empty");
+            ToastAndroid.show("Tracker name cannot be empty", ToastAndroid.SHORT);
             return;
         }
         if (fields.length === 0) {
-            alert("At least one field is required");
+            ToastAndroid.show("At least one field is required", ToastAndroid.SHORT);
             return;
         }
 
@@ -94,10 +95,10 @@ export default function createTracker() {
                 );`
             );
         });
-        alert("Tracker saved successfully!");
+        ToastAndroid.show("Tracker saved successfully!", ToastAndroid.SHORT);
         } catch (error) {
             console.error("Error saving tracker:", error);
-            alert("Failed to save tracker. Please try again.");
+            ToastAndroid.show("Failed to save tracker. Please try again.", ToastAndroid.SHORT);
         }
         router.navigate("/");
     }
@@ -122,8 +123,11 @@ export default function createTracker() {
                     placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
                 />
                 {fields && fields.map((field, index) => (
-                    <View key={index} style={{marginVertical: 5}}>
-                        <ThemedText style={{ color: theme === "dark" ? "#fff" : "#222" }}>{field.name} ({field.type})</ThemedText>
+                    <View key={index} style={{marginVertical: 5, marginRight:10, flexDirection: "row", alignItems: "center"}}>
+                        <Entypo name="dot-single" size={24} style={{marginTop:4}} color={theme==="dark"?"white":"black"} />
+                        <ThemedText style={{ color: theme === "dark" ? "#fff" : "#222" }}>
+                            {field.name} - {field.type}
+                        </ThemedText>
                     </View>
                 ))}
                 <TouchableOpacity
@@ -133,7 +137,7 @@ export default function createTracker() {
                     ]}
                     onPress={() => setShowCreate(!showCreate)}
                 >
-                    <ThemedText style={styles.addFieldButtonText}>Add field</ThemedText>
+                    <ThemedText style={styles.buttonText}>Add field</ThemedText>
                 </TouchableOpacity>
 
                 {showCreate &&
@@ -165,12 +169,14 @@ export default function createTracker() {
                                 styles.dropdown,
                                 {
                                     backgroundColor: theme === "dark" ? "#222" : "#fff",
-                                    borderColor: theme === "dark" ? "#444" : "gray"
+                                    borderColor: theme === "dark" ? "#444" : "gray",
                                 }
                             ]}
+                            activeColor={theme === "dark" ? "#333" : "#e0e0e0"}
                             containerStyle={{
                                 backgroundColor: theme === "dark" ? "#222" : "#fff",
-                                borderColor: theme === "dark" ? "#444" : "gray"
+                                borderColor: theme === "dark" ? "#444" : "gray",
+                                borderRadius: 5,
                             }}
                             placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
                             selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
@@ -188,20 +194,20 @@ export default function createTracker() {
                             ]}
                             onPress={() => {
                                 if (trackerName.trim() === "") {
-                                    alert("Field name cannot be empty");
+                                    ToastAndroid.show("Field name cannot be empty", ToastAndroid.SHORT);
                                     return;
                                 }
                                 setFields([...fields, {name: fieldName, type: fieldType}]);
                                 setShowCreate(false);
                                 setFieldName('');
                             }}>
-                            <ThemedText style={styles.saveFieldButtonText}>Save Field</ThemedText>
+                            <ThemedText style={styles.buttonText}>Save Field</ThemedText>
                         </TouchableOpacity>
                     </View>
                 }
             </ScrollView>
             <TouchableOpacity onPress={saveTracker} style={[styles.saveButton, { backgroundColor: "#4630EB" }]}>
-                <ThemedText style={styles.saveButtonText}>Save</ThemedText>
+                <ThemedText style={styles.buttonText}>Save</ThemedText>
             </TouchableOpacity>
         </View>
     );
@@ -242,19 +248,13 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         width: "100%"
     },
-    addFieldButtonText: {
-        color: "white",
-        textAlign: "center",
-        fontSize: 15,
-        fontWeight: "bold"
-    },
     saveFieldButton: {
         padding: 6,
         marginTop: 20,
         borderRadius: 10,
         width: "100%"
     },
-    saveFieldButtonText: {
+    buttonText: {
         fontSize: 15,
         fontWeight: "bold",
         color: "white",
@@ -269,9 +269,4 @@ const styles = StyleSheet.create({
         right: 0,
         margin: 15,
     },
-    saveButtonText: {
-        color: "white",
-        textAlign: "center",
-        fontSize: 15
-    }
 });
