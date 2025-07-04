@@ -7,8 +7,10 @@ import { router } from "expo-router";
 import { ThemeContext } from "@/theme/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
 import Entypo from '@expo/vector-icons/Entypo';
+import Checkbox from "expo-checkbox";
+import { NumberField } from "@/components/NumberField";
 
-type FieldType = "text" | "number" | "boolean" | "select" | "substance";
+type FieldType = "text" | "number" | "boolean" | "select";
 
 type TrackerField = {
     name: string;
@@ -19,30 +21,38 @@ type TrackerField = {
 export default function createTracker() {
     const [trackerName, setTrackerName] = useState("");
     const [fields, setFields] = useState<TrackerField[]>([]);
-    const [showCreate, setShowCreate] = useState(false);
+    const [showCreateField, setShowCreateField] = useState(false);
     const [fieldType, setFieldType] = useState<FieldType>("text");
     const [fieldName, setFieldName] = useState("");
     const { theme } = useContext(ThemeContext);
     const [showCreateSelectOption, setShowCreateSelectOption] = useState(false);
     const [selectOptions, setSelectOptions] = useState<string[]>([]);
+    const [isSubstanceTracker, setIsSubstanceTracker] = useState(false);
+    const [substanceHalfLife, setSubstanceHalfLife] = useState(0);
 
     async function saveTracker() {
         if (trackerName.trim() === "") {
             ToastAndroid.show("Tracker name cannot be empty", ToastAndroid.SHORT);
             return;
         }
-        if (fields.length === 0) {
+        if (fields.length === 0 && !isSubstanceTracker) {
             ToastAndroid.show("At least one field is required", ToastAndroid.SHORT);
             return;
         }
-
+        if (isSubstanceTracker && substanceHalfLife <= 0) {
+            ToastAndroid.show("Substance half-life must be a positive number", ToastAndroid.SHORT);
+            return;
+        }
+        
         try {
             const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
             await customTrackersDB.withTransactionAsync(async () => {
             await customTrackersDB.runAsync(`
                 CREATE TABLE IF NOT EXISTS trackers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL
+                    name TEXT NOT NULL,
+                    isSubstanceTracker BOOLEAN DEFAULT 0,
+                    substanceData TEXT DEFAULT NULL
                 );
             `);
             await customTrackersDB.runAsync(`
@@ -57,6 +67,21 @@ export default function createTracker() {
 
             const result = await customTrackersDB.runAsync('INSERT INTO trackers (name) VALUES (?);', [trackerName]);
             const trackerId = result.lastInsertRowId;
+
+            if(substanceHalfLife > 0 && isSubstanceTracker){
+                console.log("Setting tracker as substance tracker with half-life:", substanceHalfLife);
+                let substanceData_string = await customTrackersDB.getFirstAsync(
+                    'SELECT substanceData FROM trackers WHERE id = ?',
+                    [trackerId]
+                ) as { substanceData?: string } | undefined;
+                let newSubstanceData = JSON.parse(substanceData_string?.substanceData || '{}');
+                newSubstanceData.substanceHalfLife = substanceHalfLife;
+                await customTrackersDB.runAsync(
+                    'UPDATE trackers SET isSubstanceTracker = 1, substanceData = ? WHERE id = ?;',
+                    [JSON.stringify(newSubstanceData), trackerId]
+                )
+                return;
+            }
 
             for (const field of fields) {
                 await customTrackersDB.runAsync('INSERT INTO fields (trackerId, name, type) VALUES (?, ?, ?);', [trackerId, field.name, field.type]);
@@ -79,10 +104,6 @@ export default function createTracker() {
                             break;
                         case "select":
                             sqlType = "TEXT"; // Select fields will be stored as TEXT, options will be in a separate table
-                            break;
-                        case "substance":
-                            // TODO: Handle select and substance types
-                            sqlType = "TEXT";
                             break;
                         default:
                             sqlType = "TEXT";
@@ -161,17 +182,50 @@ export default function createTracker() {
                         </ThemedText>
                     </View>
                 ))}
-                <TouchableOpacity
-                    style={[
-                        styles.addFieldButton,
-                        { backgroundColor: "#4630EB" }
-                    ]}
-                    onPress={() => setShowCreate(!showCreate)}
-                >
-                    <ThemedText style={styles.buttonText}>Add field</ThemedText>
-                </TouchableOpacity>
+                { !isSubstanceTracker &&
+                    <TouchableOpacity
+                        style={[
+                            styles.addFieldButton,
+                            { backgroundColor: "#4630EB" }
+                        ]}
+                        onPress={() => setShowCreateField(!showCreateField)}
+                    >
+                        <ThemedText style={styles.buttonText}>Add field</ThemedText>
+                    </TouchableOpacity>
+                }
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
+                    <Checkbox
+                        value={isSubstanceTracker}
+                        onValueChange={(value) => {
+                            setIsSubstanceTracker(value)
+                            if (value) {
+                                setFields([]);
+                                setShowCreateField(false);
+                                setFieldName('');
+                                setFieldType("text");
+                                setSelectOptions([]);
+                                setShowCreateSelectOption(false);
+                            }
+                            }}
+                        style={{ marginTop: 10, marginBottom: 10 }}
+                        color={isSubstanceTracker ? "#4630EB" : undefined}
+                    />
+                    <ThemedText style={{ marginLeft:10,color: theme === "dark" ? "#fff" : "#222" }}>
+                        This will be a substance tracker
+                    </ThemedText>
+                </View>
 
-                {showCreate &&
+                {isSubstanceTracker && (
+                    <View style={{marginTop: 10, width: "100%"}}>
+                        <NumberField 
+                            label="Substance Half-life (in hours)"
+                            value={substanceHalfLife}
+                            onValueChange={setSubstanceHalfLife}
+                        />
+                    </View>
+                )}
+
+                {showCreateField &&
                     <View style={{marginTop:20, width: "100%"}}>
                         <TextInput 
                             placeholder="Field Name"
@@ -192,8 +246,7 @@ export default function createTracker() {
                                 { label: 'Text', value: 'text' },
                                 { label: 'Number', value: 'number' },
                                 { label: 'Boolean', value: 'boolean' },
-                                { label: 'Select', value: 'select' },
-                                { label: 'Substance', value: 'substance' }
+                                { label: 'Select', value: 'select' }
                             ]}
                             value={fieldType}
                             style={[
@@ -288,7 +341,7 @@ export default function createTracker() {
                                 else{ 
                                     setFields([...fields, {name: fieldName, type: fieldType}]);
                                 }
-                                setShowCreate(false);
+                                setShowCreateField(false);
                                 setFieldName('');
                                 setFieldType("text");
                                 setSelectOptions([]);

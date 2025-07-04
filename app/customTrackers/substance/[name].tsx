@@ -1,46 +1,30 @@
 import { View, StyleSheet } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import { useContext } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { useIntakes } from '@/hooks/useIntakes';
 import SubstanceLogCard from '@/components/SubstanceLogCard';
-import { useEffect } from 'react';
-import * as SQLite from 'expo-sqlite';
 
-
-export default function Caffeine(){
-    const intakes = useIntakes('caffeine');
+export default function CustomSubstanceTracker(){
+    const { name } = useLocalSearchParams<{ name: string }>();
+    const intakes = useIntakes(name);
     const { theme } = useContext(ThemeContext);
-    
-    useEffect(() => {
-        let db: SQLite.SQLiteDatabase | null = null;
-        async function setupDatabase() {
-            db = await SQLite.openDatabaseAsync('customTrackers.db');
-            await db.execAsync(`
-                INSERT INTO trackers (name, isSubstanceTracker, substanceData)
-                SELECT 'caffeine', 1, '{"substanceHalfLife": 4, "substanceUnit": "mg", "maxY": 250}'
-                WHERE NOT EXISTS (SELECT 1 FROM trackers WHERE name = 'caffeine')
-            `);
-        }
-        setupDatabase();
-        return () => {
-            db?.closeAsync();
-        };
-    }, []);
 
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
-            <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName='caffeine'/>
+            <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName={name}/>
+            
             <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
             {intakes.reverse().slice(0,11).map((intake) => {
                 return (
                     <SubstanceLogCard key={intake.time} log={intake} />
                 );
             })}
-            <FloatingPlusButton onPress={() => router.navigate('/caffeine/add')} />
+
+            <FloatingPlusButton onPress={() => router.navigate({pathname:'/customTrackers/substance/add', params: { name }})} />
         </View>
     );
 }

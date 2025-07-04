@@ -100,7 +100,7 @@ export default function Logs() {
         ))}
       </ScrollView>
       :<ThemedText>No Logs</ThemedText>}
-      {/* Floating Plus Button */}
+      
       <FloatingPlusButton onPress={() => router.navigate('/toilet/add')} />
     </View>
   );

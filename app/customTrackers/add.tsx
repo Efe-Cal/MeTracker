@@ -11,7 +11,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import SelectField from '@/components/SelectField';
 
-export default function DetailsScreen() {
+export default function CustomTrackerAdd() {
   const { name } = useLocalSearchParams() as { name: string };
   const navigation = useNavigation();
   const [fields, setFields] = useState([] as Field[]);

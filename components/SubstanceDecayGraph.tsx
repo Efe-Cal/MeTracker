@@ -6,13 +6,14 @@ import type { IntakeEntry, IntakeData } from "@/types";
 import { useContext, useEffect, useState } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SQLite from 'expo-sqlite';
 
 type SDProps = {
     intakes: IntakeEntry[];
     halflife?: number;
     theme?: "light" | "dark";
     substanceName: string;
+    maxY?: number;
 };
 
 const interval = 0.25;
@@ -29,10 +30,7 @@ function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, curre
             amount: intake.amount
         };
     });
-    let multiday= false;
-    if (intakes.length > 0 && intakes[intakes.length-1].theDayBefore) {
-        multiday = true;
-    }
+    var nextWillBeTheCurrentAmmount = false;
     Array.from({length: 48/interval+1}, (_, i) => {
         let time = new Date();
         time.setHours(Math.floor(i * interval), 0, 0, 0);
@@ -41,16 +39,27 @@ function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, curre
         data.forEach((intake) => {
             if (intake.time.getTime() <= time.getTime()) {
                 amount += intake.amount * Math.pow(0.5, ((time.getTime() - intake.time.getTime())/(1000*60*60)) / halflife);
-                amount = Math.floor(amount);
+                
                 if (amount < 1) amount = 0;
             }
         });
+        if (nextWillBeTheCurrentAmmount) {
+            let currentAmount = Math.floor(amount / Math.pow(0.5, 0.25 / halflife));
+            currentAmountSetter(currentAmount);
+            nextWillBeTheCurrentAmmount = false;
+        }
         const now = new Date();
         if (now.getTime() - time.getTime() < interval*(1000*3600) && now.getTime() - time.getTime() >= 0) {
-            console.log("Time: ", time, "Amount: ", amount);
-            currentAmountSetter(amount);
+            if(amount === 0){
+                nextWillBeTheCurrentAmmount = true;
+                
+            }
+            else{
+                currentAmountSetter(Math.floor(amount));
+            }
         }
-        result.push({time: String(time.getHours())+ "."+ (time.getMinutes()==0?"00":time.getMinutes())+" " + (time.getDay()===new Date().getDay()?"":(time.getDay()===new Date().getDay()-1)?"Y":"T"), amount: amount});
+
+        result.push({time: String(time.getHours())+ "."+ (time.getMinutes()==0?"00":time.getMinutes())+" " + (time.getDay()===new Date().getDay()?"":(time.getDay()===new Date().getDay()-1)?"Y":"T"), amount: Math.floor(amount)});
     });
     return result;
 }
@@ -73,6 +82,7 @@ function MyCustomLine({ points, theme }: { points: PointsArray, theme: "light" |
     const animPath = useAnimatedPath(path);
     return <Path path={animPath} style="stroke" strokeWidth={3} color={theme === "dark" ? "#fff" : "black"}/>;
 }
+
 type ModalInputProps = {
   onSubmit: () => void;
   visible: boolean;
@@ -143,7 +153,7 @@ const ModalInput = ({ onSubmit, visible, value, onCancel, placeholder, onChangeT
             <TouchableOpacity
               onPress={onSubmit}
               style={{
-                backgroundColor: isDark ? "#444" : "#007AFF",
+                backgroundColor: isDark ? "#444" : "#463CEB",
                 paddingVertical: 8,
                 paddingHorizontal: 20,
                 borderRadius: 8,
@@ -158,7 +168,7 @@ const ModalInput = ({ onSubmit, visible, value, onCancel, placeholder, onChangeT
   );
 };
 
-export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, theme: themeProp, substanceName}:SDProps) {
+export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, theme: themeProp, substanceName, maxY}:SDProps) {
     const context = useContext(ThemeContext);
     const theme = themeProp || context.theme || "light";
     const [substanceData, setSubstanceData] = useState<any[]>([{time: "0", amount: 0}]); 
@@ -166,38 +176,50 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     const [ isModalVisible, setIsModalVisible ] = useState(false);
     const [halflife, setHalflife] = useState(halflifeProp);
     const [halflifeInput, setHalflifeInput] = useState(halflifeProp?.toString());
-    // Load halflife from AsyncStorage on mount or when substanceName changes
+    // Load halflife from DB on mount
     useEffect(() => {
-        const loadHalflife = async () => {
-            try {
-                const stored = await AsyncStorage.getItem(`halflife_${substanceName}`);
-                if (stored !== null) {
-                    setHalflife(Number(stored));
-                    setHalflifeInput(stored);
-                } else {
-                    setHalflife(halflifeProp);
-                    setHalflifeInput(halflifeProp?.toString());
-                }
-            } catch (e) {
-                setHalflife(halflifeProp);
-                setHalflifeInput(halflifeProp?.toString());
-            }
-        };
         loadHalflife();
-    }, [substanceName, halflifeProp]);
+    }, []);
 
-    // Save halflife to AsyncStorage when changed
+    const loadHalflife = async () => {
+        try {
+            const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+            const result = await customTrackersDB.getFirstAsync('SELECT substanceData FROM trackers WHERE name = ?', [substanceName]) as {substanceData?: string} | undefined;
+            if (result && result.substanceData) {
+                let substanceHalfLife = JSON.parse(result.substanceData).substanceHalfLife;
+                setHalflife(substanceHalfLife);
+                setHalflifeInput(substanceHalfLife);
+            } else {
+                setHalflife(undefined);
+                setHalflifeInput("");
+            }
+        } catch (error) {
+            console.error('Error loading halflife:', error);
+            setHalflife(undefined);
+            setHalflifeInput("");
+        }
+    }
+
     const saveHalflife = async (value: number) => {
         try {
-            await AsyncStorage.setItem(`halflife_${substanceName}`, value.toString());
-        } catch (e) {
-            // handle error if needed
+            const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+            let substanceData_string = await customTrackersDB.getFirstAsync(
+                'SELECT substanceData FROM trackers WHERE name = ?',
+                [substanceName]
+            ) as { substanceData: string };
+            let newSubstanceData = JSON.parse(substanceData_string.substanceData);
+            newSubstanceData.substanceHalfLife = value;
+            await customTrackersDB.runAsync('UPDATE trackers SET substanceHalfLife = ? WHERE name = ?', [JSON.stringify(newSubstanceData), substanceName]);
+            console.log("Saved halflife:", value);
+        } catch (error) {
+            console.error('Error saving halflife:', error);
         }
-    };
+    }
 
+    // Filter intakes and calculate substance amount
     useEffect(() => {
         let isMounted = true;
-        const fetchData = async () => {
+        const filterData = async () => {
             try {
                 const filteredIntakes = intakes
                     .sort((a, b) => {
@@ -241,17 +263,20 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
                 console.error('Error calculating substance amount:', error);
             }
         };
-        fetchData();
+        filterData();
         return () => {
             isMounted = false;
         };
     }, [intakes, halflife]);
+
     const { state, isActive } = useChartPressState({ x: "0", y: { amount: 0 } });
     const value = useDerivedValue(() => {
         let val = state.y.amount.value.value.toString() + " mg @ " + state.x.value.value;
         return val;
     }, [state.y.amount.value.value, state.x.value.value]);
+    
     var days = 1.5;
+    
     return (
         <View style={{
             justifyContent: "flex-start",
@@ -301,7 +326,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
                             lineColor: theme === "dark" ? "#fff" : "black",
                             labelColor: theme === "dark" ? "#fff" : "black",
                         }}
-                        domain={{y: [0, 250],x:[0,days*24/interval]}}
+                        domain={{y: [0, maxY || 250],x:[0,days*24/interval]}}
                         chartPressState={state}
                     >
                         {({ points }) => (

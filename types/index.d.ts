@@ -11,6 +11,8 @@ export type IntakeData={
 export type Tracker = {
     id: number;
     name: string;
+    isSubstanceTracker?: boolean;
+    substanceData?: JSON;
 };
 export type Field = {
     id: number;
@@ -19,3 +21,8 @@ export type Field = {
     type: "text" | "number" | "boolean" | "select" | "substance";
     options?: string[]; // For select fields, options can be provided
 };
+
+type SubstanceItem = {
+    name: string,
+    amount: number,
+}

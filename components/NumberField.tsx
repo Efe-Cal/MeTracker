@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
@@ -11,6 +11,12 @@ type NumberFieldProps = {
 
 export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
   const { theme } = useContext(ThemeContext);
+  const [inputValue, setInputValue] = useState(value?.toString() ?? "");
+
+  useEffect(() => {
+    setInputValue(value?.toString() ?? "");
+  }, [value]);
+
   return (
     <View style={styles.container}>
       <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>{label}</ThemedText>
@@ -23,11 +29,27 @@ export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
             borderColor: theme === "dark" ? "#444" : "#ccc"
           }
         ]}
-        keyboardType="numeric"
-        value={value?.toString() ?? ""}
+        keyboardType="decimal-pad"
+        value={inputValue}
         onChangeText={text => {
-          const num = parseFloat(text);
-          onValueChange(isNaN(num) ? 0 : num);
+          // Allow only numbers, optional decimal, and optional leading minus
+          if (/^-?\d*\.?\d*$/.test(text)) {
+            setInputValue(text);
+            // Only call onValueChange if text is a valid number (not just "-" or ".")
+            // and does not end with a lone decimal point
+            if (
+              text !== "" &&
+              text !== "-" &&
+              text !== "." &&
+              text !== "-." &&
+              !text.match(/^-?\d+\.$/)
+            ) {
+              const num = parseFloat(text);
+              if (!isNaN(num)) {
+                onValueChange(num);
+              }
+            }
+          }
         }}
         placeholder="Enter number"
         placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}

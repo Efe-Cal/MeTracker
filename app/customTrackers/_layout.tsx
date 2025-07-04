@@ -56,6 +56,12 @@ export default function Layout() {
           )
         })
       } />
+      <Stack.Screen name="substance/[name]" options={
+        ({ route }) => ({
+          title: decodeURIComponent(route.params?.name) || "Substance Tracker",
+          headerTitleAlign: "left"
+        })
+      }/>
     </Stack>
   );
 }

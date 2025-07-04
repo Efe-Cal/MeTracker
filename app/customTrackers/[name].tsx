@@ -11,7 +11,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 
-export default function DetailsScreen() {
+export default function CustomTracker() {
   const { name } = useLocalSearchParams() as { name: string };
   const [fields, setFields] = useState([] as Field[]);
   const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
@@ -33,12 +33,12 @@ export default function DetailsScreen() {
 
         const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
         const trackerData = await db.getAllAsync(
-          `SELECT * FROM tracker_${result.id}`
+          `SELECT * FROM ${result.isSubstanceTracker?"substance_":""}tracker_${result.id}`
         );
         if (trackerData) {
           setTrackerData(trackerData);
           console.log("Tracker data:", trackerData);
-        }    
+        }
       };
       getTracker().catch((error) => {
         console.error("Error fetching tracker:", error);
@@ -88,7 +88,6 @@ export default function DetailsScreen() {
           </Card>
         ))}
       </ScrollView>
-      {/* Floating Plus Button */}
       <FloatingPlusButton onPress={() => router.navigate({ pathname: '/customTrackers/add', params: { name } })} />
     </View>
   );
