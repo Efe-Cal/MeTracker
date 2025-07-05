@@ -68,13 +68,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    marginBottom: 4
+    marginBottom: 2
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 6,
-    padding: 8,
+    padding: 6,
+    paddingHorizontal:8,
     fontSize: 16
   }
 });

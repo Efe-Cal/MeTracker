@@ -13,7 +13,6 @@ type SDProps = {
     halflife?: number;
     theme?: "light" | "dark";
     substanceName: string;
-    maxY?: number;
 };
 
 const interval = 0.25;
@@ -168,7 +167,7 @@ const ModalInput = ({ onSubmit, visible, value, onCancel, placeholder, onChangeT
   );
 };
 
-export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, theme: themeProp, substanceName, maxY}:SDProps) {
+export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, theme: themeProp, substanceName}:SDProps) {
     const context = useContext(ThemeContext);
     const theme = themeProp || context.theme || "light";
     const [substanceData, setSubstanceData] = useState<any[]>([{time: "0", amount: 0}]); 
@@ -177,20 +176,31 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     const [halflife, setHalflife] = useState(halflifeProp);
     const [halflifeInput, setHalflifeInput] = useState(halflifeProp?.toString());
     const scrollRef = useRef<ScrollView>(null);
+    const [ maxSubstaceAmount, setMaxSubstanceAmount ] = useState(250);
+    const [ substanceUnit, setSubstanceUnit ] = useState("mg");
 
     // Load halflife from DB on mount
     useEffect(() => {
-        loadHalflife();
+        loadSubstanceData();
     }, []);
 
-    const loadHalflife = async () => {
+    const loadSubstanceData = async () => {
+        let customTrackersDB: SQLite.SQLiteDatabase | null = null;
         try {
-            const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+            customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
             const result = await customTrackersDB.getFirstAsync('SELECT substanceData FROM trackers WHERE name = ?', [substanceName]) as {substanceData?: string} | undefined;
             if (result && result.substanceData) {
-                let substanceHalfLife = JSON.parse(result.substanceData).substanceHalfLife;
-                setHalflife(substanceHalfLife);
-                setHalflifeInput(substanceHalfLife);
+
+                let substanceDate = JSON.parse(result.substanceData) as {
+                    substanceHalfLife: number;
+                    substanceUnit?: string;
+                    maxSubstaceAmount?: number;
+                };
+
+                setHalflife(substanceDate.substanceHalfLife);
+                setHalflifeInput(substanceDate.substanceHalfLife.toString());
+                setMaxSubstanceAmount(substanceDate.maxSubstaceAmount || 250); // Default to 250 if not set
+                setSubstanceUnit(substanceDate.substanceUnit || "mg"); // Default to "mg" if not set
             } else {
                 setHalflife(undefined);
                 setHalflifeInput("");
@@ -199,12 +209,15 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
             console.error('Error loading halflife:', error);
             setHalflife(undefined);
             setHalflifeInput("");
+        } finally {
+            await customTrackersDB?.closeAsync();
         }
     }
 
     const saveHalflife = async (value: number) => {
+        let customTrackersDB: SQLite.SQLiteDatabase | null = null;
         try {
-            const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+            customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
             let substanceData_string = await customTrackersDB.getFirstAsync(
                 'SELECT substanceData FROM trackers WHERE name = ?',
                 [substanceName]
@@ -215,6 +228,8 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
             console.log("Saved halflife:", value);
         } catch (error) {
             console.error('Error saving halflife:', error);
+        } finally {
+            await customTrackersDB?.closeAsync();
         }
     }
 
@@ -273,7 +288,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
 
     const { state, isActive } = useChartPressState({ x: "0", y: { amount: 0 } });
     const value = useDerivedValue(() => {
-        let val = state.y.amount.value.value.toString() + " mg @ " + state.x.value.value;
+        let val = state.y.amount.value.value.toString() + ` ${substanceUnit} @ ` + state.x.value.value;
         return val;
     }, [state.y.amount.value.value, state.x.value.value]);
     
@@ -328,7 +343,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
                 justifyContent: 'space-between',
                 alignItems: 'center',
             }}>
-                <Text style={{fontSize: 20, color: theme === "dark" ? "#fff" : "black"}}>Current amount: ~{currentAmount} mg</Text>
+                <Text style={{fontSize: 20, color: theme === "dark" ? "#fff" : "black"}}>Current amount: ~{currentAmount} {substanceUnit}</Text>
                 <TouchableOpacity onPress={() => {setIsModalVisible(true);setHalflifeInput(halflife?.toString()??"")}} style={{padding: 10}}>
                     <Ionicons name="settings-sharp" size={20} color={theme==="dark"?"white":"black"} />
                 </TouchableOpacity>
@@ -351,7 +366,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
                             lineColor: theme === "dark" ? "#fff" : "black",
                             labelColor: theme === "dark" ? "#fff" : "black",
                         }}
-                        domain={{y: [0, maxY || 250],x:[0,days*24/interval]}}
+                        domain={{y: [0, maxSubstaceAmount],x:[0,days*24/interval]}}
                         chartPressState={state}
                     >
                         {({ points }) => (

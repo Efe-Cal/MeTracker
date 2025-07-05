@@ -41,25 +41,31 @@ export default function CustomTrackerAdd() {
   }, []);
 
   async function handleSave() {
-
-    const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-    if (!trackerID) {
-      console.error("Tracker ID is not set.");
-      return;
+    let db: SQLite.SQLiteDatabase | null = null;
+    try {
+      db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+      if (!trackerID) {
+        console.error("Tracker ID is not set.");
+        return;
+      }
+      // Assuume table tracker_${trackerID} table exists
+      // Insert values into the tracker table
+      const columns = fields.map((field) => field.name.trim().replace(/[^a-zA-Z0-9_]/g, '_')).join(", ");
+      const placeholders = fields.map(() => "?").join(", ");
+      const values = fields.map((field) => fieldValues[field.id] || null); // Use fieldValues to get the current values
+      console.log(values);
+      await db.runAsync(
+        `INSERT INTO tracker_${trackerID} (${columns}) VALUES (${placeholders})`,
+        values
+      );
+      router.back();
+      console.log("Save button pressed with values:", fieldValues);
+      // You can add logic to save fieldValues to the database or perform other actions
+    } catch (error) {
+      console.error("Error saving custom tracker entry:", error);
+    } finally {
+      await db?.closeAsync();
     }
-    // Assuume table tracker_${trackerID} table exists
-    // Insert values into the tracker table
-    const columns = fields.map((field) => field.name.trim().replace(/[^a-zA-Z0-9_]/g, '_')).join(", ");
-    const placeholders = fields.map(() => "?").join(", ");
-    const values = fields.map((field) => fieldValues[field.id] || null); // Use fieldValues to get the current values
-    console.log(values);
-    await db.runAsync(
-      `INSERT INTO tracker_${trackerID} (${columns}) VALUES (${placeholders})`,
-      values
-    );
-    router.back();
-    console.log("Save button pressed with values:", fieldValues);
-    // You can add logic to save fieldValues to the database or perform other actions
   }
   function renderField(field: Field) {
     switch (field.type) {

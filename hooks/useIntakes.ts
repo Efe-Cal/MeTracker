@@ -20,6 +20,7 @@ export function useIntakes(substance_name: string) {
                 `);
                 const result = await meTrackerDB.getAllAsync(`SELECT * FROM ${substance_name}_intakes`);
                 setIntakes(result as IntakeEntry[]);
+                await meTrackerDB.closeAsync();
             }
             fetchIntakes();
         }, [substance_name])

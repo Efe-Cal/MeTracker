@@ -1,5 +1,5 @@
 import { useLocalSearchParams, } from 'expo-router';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, ToastAndroid } from 'react-native';
 import { router } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { useState, useCallback, useContext } from 'react';
@@ -16,34 +16,41 @@ export default function CustomTracker() {
   const [fields, setFields] = useState([] as Field[]);
   const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
   const { theme } = useContext(ThemeContext);
+  const [trackerID, setTrackerID] = useState<number | null>(null);
   
   useFocusEffect(
     useCallback(() => {
       const getTracker = async () => {
-        const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
-        const result = await customTrackersDB.getFirstAsync(
-          `SELECT * FROM trackers WHERE name = ?`, [encodeURI(name)]) as Tracker;
-        if (!result) {
-          console.error("Tracker not found asdasdsa");
-          return;
-        }
-        console.log("Tracker found:", result);
-        setFields(await customTrackersDB.getAllAsync(`SELECT * FROM fields WHERE trackerId = ?`, [result.id]))
-        console.log("Tracker ID:", result.id);
+        let customTrackersDB: SQLite.SQLiteDatabase | null = null;
+        try {
+          customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+          const result = await customTrackersDB.getFirstAsync(
+            `SELECT * FROM trackers WHERE name = ?`, [encodeURI(name as string)]) as Tracker;
+          if (!result) {
+            console.error("Tracker not found asdasdsa");
+            return;
+          }
+          console.log("Tracker found:", result);
+          setFields(await customTrackersDB.getAllAsync(`SELECT * FROM fields WHERE trackerId = ?`, [result.id]))
+          console.log("Tracker ID:", result.id);
+          setTrackerID(result.id);
 
-        const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-        const trackerData = await db.getAllAsync(
-          `SELECT * FROM ${result.isSubstanceTracker?"substance_":""}tracker_${result.id}`
-        );
-        if (trackerData) {
-          setTrackerData(trackerData);
-          console.log("Tracker data:", trackerData);
+          const db2 = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+          const trackerData = await db2.getAllAsync(
+            `SELECT * FROM ${result.isSubstanceTracker ? "substance_" : ""}tracker_${result.id}`
+          );
+          if (trackerData) {
+            setTrackerData(trackerData);
+            console.log("Tracker data:", trackerData);
+          }
+          await db2.closeAsync();
+        } catch (error) {
+          console.error("Error fetching tracker:", error);
+        } finally {
+          await customTrackersDB?.closeAsync();
         }
       };
-      getTracker().catch((error) => {
-        console.error("Error fetching tracker:", error);
-      });
-      return;
+      getTracker();
     }, [name])
   );
 
@@ -61,6 +68,29 @@ export default function CustomTracker() {
           <Card 
             key={index}
             style={{ marginBottom: 16, padding: 16, width: '100%', flexDirection: 'column', alignSelf:"center" }}  
+            onSwipe={(direction) => {
+              Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
+                {text: "Cancel", style: "cancel"},
+                {
+                  text: "Delete", style: "destructive",
+                  onPress: async () => {  
+                    let db: SQLite.SQLiteDatabase | null = null;
+                    try {
+                      db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+                      console.log("Deleting entry with ID:", data);
+                      await db.runAsync(`DELETE FROM tracker_${trackerID} WHERE created_at = ?`, [data.created_at]);
+                      setTrackerData((prevData) => prevData.filter((item) => item.created_at !== data.created_at));
+                      ToastAndroid.show("Entry deleted successfully", ToastAndroid.SHORT);
+                    } catch (error) {
+                      console.error("Error deleting entry:", error);
+                      ToastAndroid.show("Failed to delete entry", ToastAndroid.SHORT);
+                    } finally {
+                      await db?.closeAsync();
+                    }
+                  }
+                }
+              ]);
+            }}
           >
             {/* // show created_at */}
             <View style={{borderBottomWidth: 1, borderBottomColor: "#222", paddingBottom: 8 }}>

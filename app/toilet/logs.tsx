@@ -1,4 +1,4 @@
-import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ScrollView, View, StyleSheet, TouchableOpacity, Alert, ToastAndroid } from "react-native";
 import { Card } from "@/components/Card";
 import { useCallback, useContext } from "react";
 import * as SQLite from 'expo-sqlite';
@@ -65,7 +65,6 @@ const LogCard = ({log}: {log: Log}) => {
             :<View style={styles.iconRowEmpty}></View>
         }
       </View>
-      
     </Card>
     </TouchableOpacity>
   );
@@ -75,11 +74,17 @@ export default function Logs() {
   const [logs, setLogs] = useState([] as Log[]);
   const { theme } = useContext(ThemeContext);
   const fetchData = async () => {
-    const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
-    await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
-    const allRows = await db.getAllAsync('SELECT * FROM toilet');
-    setLogs(allRows as Log[]);
-    db.closeSync();
+    let db: SQLite.SQLiteDatabase | null = null;
+    try {
+      db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
+      await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
+      const allRows = await db.getAllAsync('SELECT * FROM toilet');
+      setLogs(allRows as Log[]);
+    } catch (error) {
+      console.error("Failed to fetch toilet logs:", error);
+    } finally {
+      db?.closeSync();
+    }
   };
   useFocusEffect(
     useCallback(() => {
@@ -137,23 +142,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     padding: 15
-  },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    bottom: 24,
-    backgroundColor: '#4630EB',
-    borderRadius: 32,
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    zIndex: 10
   },
   icon: {
     alignSelf: "center",

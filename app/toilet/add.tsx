@@ -58,38 +58,44 @@ export default function Add(){
     const save = async () => {
         setNote("");
         let values = [];
-        const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
-        await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
-        if(isUrination){
-            values.push(true);
-            values.push(urinationColor);
-            values.push(isPainUrination);
-        }else{
-            values.push(false);
-            values.push(null);
-            values.push(null);
+        let db: SQLite.SQLiteDatabase | null = null;
+        try {
+            db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
+            await db.execAsync("CREATE TABLE IF NOT EXISTS toilet (time DATETIME PRIMARY KEY DEFAULT CURRENT_TIMESTAMP, urination BOOLEAN, urinationColor TEXT, isPainUrination BOOLEAN, isBM BOOLEAN, BMColor TEXT, BMshape INTEGER, isPainBM BOOLEAN, isSmell BOOLEAN, photo TEXT, notes TEXT);");
+            if(isUrination){
+                values.push(true);
+                values.push(urinationColor);
+                values.push(isPainUrination);
+            }else{
+                values.push(false);
+                values.push(null);
+                values.push(null);
+            }
+            if (isBM) {
+                values.push(true);
+                values.push(BMColor);
+                values.push(BMshape);
+                values.push(isPainBM);
+                values.push(isSmell);
+            }else {
+                values.push(false);
+                values.push(null);
+                values.push(null);
+                values.push(null);
+                values.push(null);
+            }
+            values.push(photo);
+            values.push(note);
+            const result = await db.runAsync("INSERT INTO toilet (urination, urinationColor, isPainUrination, isBM, BMColor, BMshape, isPainBM, isSmell, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", values);
+            console.log(result);
+            router.replace('/toilet/logs');
+            ToastAndroid.show("Saved", ToastAndroid.SHORT);
+        } catch (error) {
+            console.error("Failed to save toilet log:", error);
+            ToastAndroid.show("Failed to save", ToastAndroid.SHORT);
+        } finally {
+            db?.closeSync();
         }
-        if (isBM) {
-            values.push(true);
-            values.push(BMColor);
-            values.push(BMshape);
-            values.push(isPainBM);
-            values.push(isSmell);
-        }else {
-            values.push(false);
-            values.push(null);
-            values.push(null);
-            values.push(null);
-            values.push(null);
-        }
-        values.push(photo);
-        values.push(note);
-        const result = await db.runAsync("INSERT INTO toilet (urination, urinationColor, isPainUrination, isBM, BMColor, BMshape, isPainBM, isSmell, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", values);
-        console.log(result);
-        db.closeSync();
-        router.replace('/toilet/logs');
-        ToastAndroid.show("Saved", ToastAndroid.SHORT);
-
     }
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>

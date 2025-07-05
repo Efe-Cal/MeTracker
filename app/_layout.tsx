@@ -59,7 +59,12 @@ export default function Layout() {
                 <Stack.Screen
                   name="caffeine"
                   options={{
-                    title: "Caffeine Tracker"
+                    title: "Caffeine Tracker",
+                    headerLeft: () => (
+                      <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 12 }}>
+                        <Feather name="arrow-left" size={24} color={themeContext?.theme === "dark" ? "#fff" : "black"} />
+                      </Pressable>
+                    )
                   }}
                 />
                 <Stack.Screen

@@ -7,12 +7,14 @@ type TextFieldProps = {
     label: string;
     value: string;
     onValueChange: (val: string) => void;
+    placeholder?: string;
 };
 
 export function TextField({
     label,
     value,
-    onValueChange
+    onValueChange,
+    placeholder = "",
 }: TextFieldProps) {
     const { theme } = useContext(ThemeContext);
     return (
@@ -32,6 +34,7 @@ export function TextField({
                 multiline={true}
                 numberOfLines={3}
                 placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                placeholder={placeholder??"Enter text"}
             />
         </View>
     );

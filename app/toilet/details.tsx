@@ -24,11 +24,18 @@ export default function Details(){
     }>();
     const { theme } = useContext(ThemeContext);
     const deleteLog = async ()=>{
-        const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-        await db.runAsync(`DELETE FROM toilet WHERE time=?`,[log.time]);
-        ToastAndroid.show("Log Deleted",ToastAndroid.SHORT);
-        db.closeSync();
-        router.back();
+        let db: SQLite.SQLiteDatabase | null = null;
+        try {
+            db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+            await db.runAsync(`DELETE FROM toilet WHERE time=?`,[log.time]);
+            ToastAndroid.show("Log Deleted",ToastAndroid.SHORT);
+            router.back();
+        } catch (error) {
+            console.error("Failed to delete log:", error);
+            ToastAndroid.show("Failed to delete log", ToastAndroid.SHORT);
+        } finally {
+            db?.closeSync();
+        }
     }
     const date = new Date(log.time).toDateString();
     return (

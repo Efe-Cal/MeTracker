@@ -10,21 +10,30 @@ export default function CustomTrackersSettings() {
 	const { name, isSubstance } = useLocalSearchParams() as unknown as { name: string, isSubstance?: boolean };
 
 	const doReset = async () => {
-		// Open the customTrackers DB to get the tracker ID
-		const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
-		const tracker = await customTrackersDB.getFirstAsync(
-			`SELECT id FROM trackers WHERE name = ?`, [name]
-		) as { id: number } | undefined;
-		if (!tracker) {
-			console.error(`Tracker "${name}" not found.`);
-			return;
+		let customTrackersDB: SQLite.SQLiteDatabase | null = null;
+		let db: SQLite.SQLiteDatabase | null = null;
+		try {
+			// Open the customTrackers DB to get the tracker ID
+			customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+			const tracker = await customTrackersDB.getFirstAsync(
+				`SELECT id FROM trackers WHERE name = ?`, [name]
+			) as { id: number } | undefined;
+			if (!tracker) {
+				console.error(`Tracker "${name}" not found.`);
+				return;
+			}
+			// Open MeTracker DB and delete all rows from the corresponding tracker table
+			db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+			let tableName = isSubstance ? `${name}_intakes` : `tracker_${tracker.id}`;
+			await db.runAsync(`DELETE FROM ${tableName}`);
+			console.log(`Custom tracker "${name}" (tracker_${tracker.id}) has been reset.`);
+			router.back();
+		} catch (error) {
+			console.error("Error resetting tracker:", error);
+		} finally {
+			await customTrackersDB?.closeAsync();
+			await db?.closeAsync();
 		}
-		// Open MeTracker DB and delete all rows from the corresponding tracker table
-		const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-		let tableName = isSubstance ? `${name}_intakes` : `tracker_${tracker.id}`;
-		await db.runAsync(`DELETE FROM ${tableName}`);
-		console.log(`Custom tracker "${name}" (tracker_${tracker.id}) has been reset.`);
-		router.back();
 	}
 
 	const handleReset = () => {
@@ -38,38 +47,48 @@ export default function CustomTrackersSettings() {
 		);
 	};
 	const doDelete = async () => {
-		// Open the customTrackers DB to get the tracker ID
-		const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
-		const tracker = await customTrackersDB.getFirstAsync(
-			`SELECT id FROM trackers WHERE name = ?`, [name]
-		) as { id: number } | undefined;
-		if (!tracker) {
-			console.error(`Tracker "${name}" not found.`);
-			return;
-		}
-		// Delete the tracker from customTrackers DB
-		await customTrackersDB.runAsync(`DELETE FROM trackers WHERE id = ?`, [tracker.id]);
-		if (!isSubstance) {
-			// Open MeTracker DB and delete all rows from the corresponding tracker table
-			const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-			await db.runAsync(`DELETE FROM tracker_${tracker.id}`);
-			const fields = await customTrackersDB.getAllAsync(
-				`SELECT id, type FROM fields WHERE trackerId = ?`, [tracker.id]
-			) as { id: number; type: string }[];
-
-			for (const field of fields) {
-				if (field.type === 'select') {
-					await customTrackersDB.runAsync(
-						`DELETE FROM tracker_${tracker.id}_select_options WHERE fieldId = ?`, [field.id]
-					);
-				}
+		let customTrackersDB: SQLite.SQLiteDatabase | null = null;
+		let db: SQLite.SQLiteDatabase | null = null;
+		try {
+			// Open the customTrackers DB to get the tracker ID
+			customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
+			const tracker = await customTrackersDB.getFirstAsync(
+				`SELECT id FROM trackers WHERE name = ?`, [name]
+			) as { id: number } | undefined;
+			if (!tracker) {
+				console.error(`Tracker "${name}" not found.`);
+				return;
 			}
-			await customTrackersDB.runAsync(`DELETE FROM fields WHERE trackerId = ?`, [tracker.id]);
-		} else {
-			await customTrackersDB.runAsync(`DROP TABLE IF EXISTS ${name}_intakes`);
+			// Delete the tracker from customTrackers DB
+			await customTrackersDB.runAsync(`DELETE FROM trackers WHERE id = ?`, [tracker.id]);
+			if (!isSubstance) {
+				// Open MeTracker DB and delete all rows from the corresponding tracker table
+				db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+				await db.runAsync(`DROP TABLE IF EXISTS tracker_${tracker.id}`);
+				const fields = await customTrackersDB.getAllAsync(
+					`SELECT id, type FROM fields WHERE trackerId = ?`, [tracker.id]
+				) as { id: number; type: string }[];
+
+				for (const field of fields) {
+					if (field.type === 'select') {
+						await customTrackersDB.runAsync(
+							`DELETE FROM tracker_${tracker.id}_select_options WHERE fieldId = ?`, [field.id]
+						);
+					}
+				}
+				await customTrackersDB.runAsync(`DELETE FROM fields WHERE trackerId = ?`, [tracker.id]);
+			} else {
+				db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+				await db.runAsync(`DROP TABLE IF EXISTS ${name}_intakes`);
+			}
+			console.log(`Custom tracker "${name}" has been deleted.`);
+			router.navigate("/");
+		} catch (error) {
+			console.error("Error deleting tracker:", error);
+		} finally {
+			await customTrackersDB?.closeAsync();
+			await db?.closeAsync();
 		}
-		console.log(`Custom tracker "${name}" has been deleted.`);
-		router.navigate("/");
 	}
 
 	const handleDelete = () => {

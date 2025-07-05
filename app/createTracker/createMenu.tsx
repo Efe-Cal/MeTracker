@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { View, TextInput, StyleSheet, ScrollView, ToastAndroid } from "react-native";
+import { View, TextInput, StyleSheet, ScrollView, ToastAndroid, Text } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite';
@@ -9,6 +9,7 @@ import { ThemedText } from "@/components/ThemedText";
 import Entypo from '@expo/vector-icons/Entypo';
 import Checkbox from "expo-checkbox";
 import { NumberField } from "@/components/NumberField";
+import { TextField } from "@/components/TextField";
 
 type FieldType = "text" | "number" | "boolean" | "select";
 
@@ -29,6 +30,8 @@ export default function createTracker() {
     const [selectOptions, setSelectOptions] = useState<string[]>([]);
     const [isSubstanceTracker, setIsSubstanceTracker] = useState(false);
     const [substanceHalfLife, setSubstanceHalfLife] = useState(0);
+    const [substanceUnit, setSubstanceUnit] = useState("");
+    const [maxSubstanceAmount, setMaxSubstanceAmount] = useState(0);
 
     async function saveTracker() {
         if (trackerName.trim() === "") {
@@ -41,6 +44,14 @@ export default function createTracker() {
         }
         if (isSubstanceTracker && substanceHalfLife <= 0) {
             ToastAndroid.show("Substance half-life must be a positive number", ToastAndroid.SHORT);
+            return;
+        }
+        if (isSubstanceTracker && substanceUnit.trim() === "") {
+            ToastAndroid.show("Substance unit cannot be empty", ToastAndroid.SHORT);
+            return;
+        }
+        if (maxSubstanceAmount < 0 && isSubstanceTracker) {
+            ToastAndroid.show("Max substance amount cannot be negative", ToastAndroid.SHORT);
             return;
         }
         setTrackerName(trackerName.trim());
@@ -70,12 +81,12 @@ export default function createTracker() {
 
             if(substanceHalfLife > 0 && isSubstanceTracker){
                 console.log("Setting tracker as substance tracker with half-life:", substanceHalfLife);
-                let substanceData_string = await customTrackersDB.getFirstAsync(
-                    'SELECT substanceData FROM trackers WHERE id = ?',
-                    [trackerId]
-                ) as { substanceData?: string } | undefined;
-                let newSubstanceData = JSON.parse(substanceData_string?.substanceData || '{}');
-                newSubstanceData.substanceHalfLife = substanceHalfLife;
+                
+                let newSubstanceData = {
+                    substanceUnit: substanceUnit.trim(),
+                    maxSubstanceAmount: maxSubstanceAmount > 0 ? maxSubstanceAmount : null,
+                    substanceHalfLife: substanceHalfLife
+                };
                 await customTrackersDB.runAsync(
                     'UPDATE trackers SET isSubstanceTracker = 1, substanceData = ? WHERE id = ?;',
                     [JSON.stringify(newSubstanceData), trackerId]
@@ -117,6 +128,7 @@ export default function createTracker() {
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP${columns ? ",\n    " + columns : ""}
                 );`
             );
+            await meTrackerDB.closeAsync();
             await customTrackersDB.runAsync(`
                 CREATE TABLE IF NOT EXISTS tracker_${trackerId}_select_options (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,7 +158,7 @@ export default function createTracker() {
                 }
             }
         });
-
+        customTrackersDB.closeAsync();
         ToastAndroid.show("Tracker saved successfully!", ToastAndroid.SHORT);
         } catch (error) {
             console.error("Error saving tracker:", error);
@@ -222,6 +234,35 @@ export default function createTracker() {
                             value={substanceHalfLife}
                             onValueChange={setSubstanceHalfLife}
                         />
+                        <View style={{flexDirection:"row", alignItems:"center",justifyContent:"space-between", marginTop:5}}>
+                            <ThemedText style={{ fontSize:16 }}>
+                                Unit
+                            </ThemedText>
+                            <TextInput
+                                placeholder="(e.g. mg, g, etc.)"
+                                value={substanceUnit}
+                                onChangeText={setSubstanceUnit}
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: theme === "dark" ? "#222" : "#fff",
+                                        color: theme === "dark" ? "#fff" : "#222",
+                                        borderColor: theme === "dark" ? "#444" : "#ccc",
+                                        width:"30%"
+                                    }
+                                ]}
+                                placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                            />
+                        </View>
+                        <View style={{flexDirection:"row", alignItems:"center", justifyContent:"space-between", marginTop:5}}>
+                            <NumberField
+                                label="Maximum amout of substance"
+                                value={maxSubstanceAmount}
+                                onValueChange={setMaxSubstanceAmount}
+                            />
+                        </View>
+                        
+
                     </View>
                 )}
 
