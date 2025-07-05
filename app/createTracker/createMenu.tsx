@@ -43,7 +43,7 @@ export default function createTracker() {
             ToastAndroid.show("Substance half-life must be a positive number", ToastAndroid.SHORT);
             return;
         }
-        
+        setTrackerName(trackerName.trim());
         try {
             const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
             await customTrackersDB.withTransactionAsync(async () => {
@@ -245,7 +245,7 @@ export default function createTracker() {
                             data={[
                                 { label: 'Text', value: 'text' },
                                 { label: 'Number', value: 'number' },
-                                { label: 'Boolean', value: 'boolean' },
+                                { label: 'Yes/No', value: 'boolean' },
                                 { label: 'Select', value: 'select' }
                             ]}
                             value={fieldType}

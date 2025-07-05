@@ -59,7 +59,23 @@ export default function Layout() {
       <Stack.Screen name="substance/[name]" options={
         ({ route }) => ({
           title: decodeURIComponent(route.params?.name) || "Substance Tracker",
-          headerTitleAlign: "left"
+          headerTitleAlign: "left",
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                router.push(
+                  ("/customTrackers/settings/" + route.params?.name + "?isSubstance=true") as Href
+                )
+              }}
+              style={{ paddingHorizontal: 12 }}
+            >
+              <Ionicons
+                name="settings-sharp"
+                size={24}
+                color={theme === "dark" ? "#fff" : "black"}
+              />
+            </TouchableOpacity>
+          )
         })
       }/>
     </Stack>

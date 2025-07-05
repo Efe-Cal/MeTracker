@@ -1,8 +1,16 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect } from 'react';
 import SubstanceAddPage from '@/components/SubstanceAddPage';
 
 export default function CustomSubstanceAdd() {
   const { name } = useLocalSearchParams<{ name: string }>();
-  console.log('CustomSubstanceAdd', name);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (name) {
+      navigation.setOptions?.({ title: name + " Add Item"});
+    }
+  }, [name, navigation]);
+
   return <SubstanceAddPage substanceName={name} />;
 }

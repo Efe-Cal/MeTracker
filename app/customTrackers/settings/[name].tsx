@@ -1,12 +1,13 @@
 import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { View, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import * as SQLite from 'expo-sqlite/next';
 import { router } from 'expo-router';
 
 export default function CustomTrackersSettings() {
-	const { name } = useLocalSearchParams() as { name: string };
+	const { name, isSubstance } = useLocalSearchParams() as unknown as { name: string, isSubstance?: boolean };
 
 	const doReset = async () => {
 		// Open the customTrackers DB to get the tracker ID
@@ -20,7 +21,8 @@ export default function CustomTrackersSettings() {
 		}
 		// Open MeTracker DB and delete all rows from the corresponding tracker table
 		const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-		await db.runAsync(`DELETE FROM tracker_${tracker.id}`);
+		let tableName = isSubstance ? `${name}_intakes` : `tracker_${tracker.id}`;
+		await db.runAsync(`DELETE FROM ${tableName}`);
 		console.log(`Custom tracker "${name}" (tracker_${tracker.id}) has been reset.`);
 		router.back();
 	}
@@ -45,25 +47,28 @@ export default function CustomTrackersSettings() {
 			console.error(`Tracker "${name}" not found.`);
 			return;
 		}
-		// Open MeTracker DB and delete all rows from the corresponding tracker table
-		const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-		await db.runAsync(`DELETE FROM tracker_${tracker.id}`);
 		// Delete the tracker from customTrackers DB
 		await customTrackersDB.runAsync(`DELETE FROM trackers WHERE id = ?`, [tracker.id]);
-		const fields = await customTrackersDB.getAllAsync(
-			`SELECT id, type FROM fields WHERE trackerId = ?`, [tracker.id]
-		) as { id: number; type: string }[];
+		if (!isSubstance) {
+			// Open MeTracker DB and delete all rows from the corresponding tracker table
+			const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
+			await db.runAsync(`DELETE FROM tracker_${tracker.id}`);
+			const fields = await customTrackersDB.getAllAsync(
+				`SELECT id, type FROM fields WHERE trackerId = ?`, [tracker.id]
+			) as { id: number; type: string }[];
 
-		for (const field of fields) {
-			if (field.type === 'select') {
-				await customTrackersDB.runAsync(
-					`DELETE FROM tracker_${tracker.id}_select_options WHERE fieldId = ?`, [field.id]
-				);
+			for (const field of fields) {
+				if (field.type === 'select') {
+					await customTrackersDB.runAsync(
+						`DELETE FROM tracker_${tracker.id}_select_options WHERE fieldId = ?`, [field.id]
+					);
+				}
 			}
+			await customTrackersDB.runAsync(`DELETE FROM fields WHERE trackerId = ?`, [tracker.id]);
+		} else {
+			await customTrackersDB.runAsync(`DROP TABLE IF EXISTS ${name}_intakes`);
 		}
-		await customTrackersDB.runAsync(`DELETE FROM fields WHERE trackerId = ?`, [tracker.id]);
-
-		console.log(`Custom tracker "${name}" (tracker_${tracker.id}) has been deleted.`);
+		console.log(`Custom tracker "${name}" has been deleted.`);
 		router.navigate("/");
 	}
 
@@ -79,7 +84,7 @@ export default function CustomTrackersSettings() {
 	}
 
 	return (
-		<View style={styles.container}>
+		<ThemedView style={styles.container}>
 			<TouchableOpacity
 				style={{ padding: 10, backgroundColor: '#d32f2f', borderRadius: 5 }}
 				onPress={handleReset}
@@ -93,7 +98,7 @@ export default function CustomTrackersSettings() {
 			>
 				<ThemedText style={{ color: '#fff', fontSize: 16 }}>Delete Tracker</ThemedText>
 			</TouchableOpacity>
-		</View>
+		</ThemedView>
 	);
 }
 const styles = StyleSheet.create({
@@ -102,7 +107,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		alignItems: 'center',
 		padding: 20,
-		backgroundColor: '#f5f5f5',
 	},
 	title: {
 		fontSize: 24,

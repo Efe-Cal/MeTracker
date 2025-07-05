@@ -3,7 +3,7 @@ import { CartesianChart, useAnimatedPath, useChartPressState, useLinePath, type 
 import { Canvas, Circle, Path, Text as SKText, useFont } from "@shopify/react-native-skia";
 import { useDerivedValue, type SharedValue } from "react-native-reanimated";
 import type { IntakeEntry, IntakeData } from "@/types";
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SQLite from 'expo-sqlite';
@@ -176,6 +176,8 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     const [ isModalVisible, setIsModalVisible ] = useState(false);
     const [halflife, setHalflife] = useState(halflifeProp);
     const [halflifeInput, setHalflifeInput] = useState(halflifeProp?.toString());
+    const scrollRef = useRef<ScrollView>(null);
+
     // Load halflife from DB on mount
     useEffect(() => {
         loadHalflife();
@@ -209,7 +211,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
             ) as { substanceData: string };
             let newSubstanceData = JSON.parse(substanceData_string.substanceData);
             newSubstanceData.substanceHalfLife = value;
-            await customTrackersDB.runAsync('UPDATE trackers SET substanceHalfLife = ? WHERE name = ?', [JSON.stringify(newSubstanceData), substanceName]);
+            await customTrackersDB.runAsync('UPDATE trackers SET substanceData = ? WHERE name = ?', [JSON.stringify(newSubstanceData), substanceName]);
             console.log("Saved halflife:", value);
         } catch (error) {
             console.error('Error saving halflife:', error);
@@ -276,7 +278,26 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     }, [state.y.amount.value.value, state.x.value.value]);
     
     var days = 1.5;
-    
+
+    // Calculate offset
+    const getLastIntakeOffset = () => {
+        if (intakes.length === 0) return 0;
+        const last = intakes[0];
+        if (last.theDayBefore) return 0;
+        const date = toTimeObj(last.time);
+        const hour = date.getHours() + date.getMinutes() / 60;
+        const offset = (2000 * (hour/(days*24))) - 100;
+        return Math.max(0, offset);
+    };
+
+    useEffect(() => {
+        // Scroll to the calculated offset when intakes change
+        if (scrollRef.current) {
+            const offset = getLastIntakeOffset();
+            scrollRef.current.scrollTo({ x: offset, y: 0, animated: false });
+        }
+    }, [intakes]);
+
     return (
         <View style={{
             justifyContent: "flex-start",
@@ -308,14 +329,18 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
                 alignItems: 'center',
             }}>
                 <Text style={{fontSize: 20, color: theme === "dark" ? "#fff" : "black"}}>Current amount: ~{currentAmount} mg</Text>
-                <TouchableOpacity onPress={() => setIsModalVisible(true)} style={{padding: 10}}>
+                <TouchableOpacity onPress={() => {setIsModalVisible(true);setHalflifeInput(halflife?.toString()??"")}} style={{padding: 10}}>
                     <Ionicons name="settings-sharp" size={20} color={theme==="dark"?"white":"black"} />
                 </TouchableOpacity>
             </View>
             <Canvas style={{ width: 400, height: 50 }}>
                 <SKText text={value} font={useFont(require("@/assets/fonts/calibri.ttf"),20)} x={10} y={20} color={theme === "dark" ? "#fff" : "black"} />
             </Canvas>
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentOffset={{x:intakes[intakes.length-1]?(2000*(toTimeObj(intakes[intakes.length-1].time).getHours()+(intakes[intakes.length-1].theDayBefore?24:0))/(days*24))-50:0,y:0}}>
+            <ScrollView
+                ref={scrollRef}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+            >
                 <View style={{height: 250, width: 2000}}>
                     <CartesianChart data={substanceData} xKey="time" yKeys={["amount"]} 
                         axisOptions={{

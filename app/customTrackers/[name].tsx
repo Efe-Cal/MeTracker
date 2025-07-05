@@ -22,9 +22,9 @@ export default function CustomTracker() {
       const getTracker = async () => {
         const customTrackersDB = await SQLite.openDatabaseAsync("customTrackers.db", { useNewConnection: true });
         const result = await customTrackersDB.getFirstAsync(
-          `SELECT * FROM trackers WHERE name = ?`, [name]) as Tracker;
+          `SELECT * FROM trackers WHERE name = ?`, [encodeURI(name)]) as Tracker;
         if (!result) {
-          console.error("Tracker not found");
+          console.error("Tracker not found asdasdsa");
           return;
         }
         console.log("Tracker found:", result);
