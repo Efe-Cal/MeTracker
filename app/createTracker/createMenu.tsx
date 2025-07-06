@@ -1,7 +1,6 @@
 import { useState, useContext } from "react";
 import { View, TextInput, StyleSheet, ScrollView, ToastAndroid, Text } from "react-native";
 import { TouchableOpacity } from "react-native";
-import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite';
 import { router } from "expo-router";
 import { ThemeContext } from "@/theme/ThemeContext";
@@ -9,7 +8,7 @@ import { ThemedText } from "@/components/ThemedText";
 import Entypo from '@expo/vector-icons/Entypo';
 import Checkbox from "expo-checkbox";
 import { NumberField } from "@/components/NumberField";
-import { TextField } from "@/components/TextField";
+import ThemedDropdown from "@/components/ThemedDropdown";
 
 type FieldType = "text" | "number" | "boolean" | "select";
 
@@ -282,11 +281,11 @@ export default function createTracker() {
                             ]}
                             placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
                         />
-                        <Dropdown
+                        <ThemedDropdown
                             data={[
                                 { label: 'Text', value: 'text' },
                                 { label: 'Number', value: 'number' },
-                                { label: 'Yes/No', value: 'boolean' },
+                                { label: 'True/False', value: 'boolean' },
                                 { label: 'Select', value: 'select' }
                             ]}
                             value={fieldType}
@@ -298,14 +297,6 @@ export default function createTracker() {
                                 }
                             ]}
                             activeColor={theme === "dark" ? "#333" : "#e0e0e0"}
-                            containerStyle={{
-                                backgroundColor: theme === "dark" ? "#222" : "#fff",
-                                borderColor: theme === "dark" ? "#444" : "gray",
-                                borderRadius: 5,
-                            }}
-                            placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
-                            selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
-                            itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                             labelField="label"
                             valueField="value"
                             onChange={item => {
@@ -422,7 +413,6 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     dropdown: {
-        borderColor: 'gray',
         borderRadius: 5,
         borderWidth: 1,
         height: 40,

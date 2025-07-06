@@ -1,8 +1,8 @@
 import React, { useEffect, useContext } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as SQLite from 'expo-sqlite/next';
 import { ThemeContext } from '@/theme/ThemeContext';
+import ThemedDropdown from './ThemedDropdown';
 
 type SelectFieldProps = {
     label: string;
@@ -39,7 +39,7 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, trackerID, fieldName, 
                 styles.label,
                 { color: theme === "dark" ? "#fff" : "#333" }
             ]}>{label}</Text>}
-            <Dropdown
+            <ThemedDropdown
                 style={[
                     styles.dropdown,
                     {
@@ -47,14 +47,6 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, trackerID, fieldName, 
                         borderColor: theme === "dark" ? "#444" : "#ccc"
                     }
                 ]}
-                containerStyle={{
-                    backgroundColor: theme === "dark" ? "#222" : "#fff",
-                    borderColor: theme === "dark" ? "#444" : "#ccc",
-                    borderRadius: 8,
-                }}
-                placeholderStyle={{ color: theme === "dark" ? "#888" : "#aaa" }}
-                selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
-                itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                 data={data}
                 labelField="label"
                 valueField="value"

@@ -66,7 +66,6 @@ export default function Index() {
           ? `/customTrackers/substance/${tracker.name}`
           : `/customTrackers/${tracker.name}`) as Href;
         if (tracker.name === "caffeine" ) return null; // Skip the caffeine tracker as it's already listed above
-        console.log("Tracker:", tracker);
         return (
           <Link key={tracker.name + idx} href={href} asChild>
             <TouchableOpacity style={{ width: "100%" }}>

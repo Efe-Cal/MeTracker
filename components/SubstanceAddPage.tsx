@@ -1,11 +1,11 @@
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
 import { useEffect, useState, useContext } from 'react';
 import * as SQLite from 'expo-sqlite';
 import { router } from 'expo-router';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 import type { SubstanceItem } from '@/types';
+import { ThemedDropdown } from '@/components/ThemedDropdown';
 
 export default function SubstanceAddPage({ substanceName }: { substanceName: string }) {
     const [value, setValue] = useState('');
@@ -42,7 +42,7 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
     return (
         <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
             {isLoading ? <ThemedText>Loading...</ThemedText>:(
-                <Dropdown
+                <ThemedDropdown
                     data={dropdownData}
                     value={value}
                     style={[
