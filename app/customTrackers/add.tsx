@@ -108,7 +108,7 @@ export default function CustomTrackerAdd() {
         );
       case "image":
         return (
-          <ImageField onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}/>
+          <ImageField label={field.name} onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}/>
         );
       default:
         return <ThemedText key={field.id}>Unsupported field type: {field.type}</ThemedText>;
