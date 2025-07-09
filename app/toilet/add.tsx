@@ -2,12 +2,12 @@ import { View, TouchableOpacity, Image, TextInput, ToastAndroid, StyleSheet, Scr
 import Checkbox from 'expo-checkbox';
 import { useState, useContext } from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import * as ImagePicker from 'expo-image-picker';
 import * as SQLite from 'expo-sqlite';
 import { router } from 'expo-router'
-import * as FileSystem from 'expo-file-system';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { ImageField } from '@/components/ImageField';
 
 export default function Add(){
 
@@ -27,32 +27,7 @@ export default function Add(){
 
     const { theme } = useContext(ThemeContext);
 
-    const saveImage = async (uri:string) => {
-        // Create a unique filename
-        const filename = uri.split('/').pop()??"default.jpeg";
-        const newPath = FileSystem.documentDirectory + filename;
     
-        // Copy the file to a new location
-        await FileSystem.moveAsync({
-          from: uri,
-          to: newPath,
-        });
-    
-        return newPath; // Return the new URI
-      };
-
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            quality: 1,
-        });
-        if (!result.canceled) {
-            console.log(result.assets[0].uri);
-            const path:string = await saveImage(result.assets[0].uri);
-            setPhoto(path);
-        }
-    };
     const BMShapes = ['Type I: Separate hard lumps', 'Type II: Lumpy sausage', 'Type III: Sausage-shaped', 'Type IV: Smooth and soft', 'Type V: Soft blobs with clear cut edges', 'Type VI: Mushy consistency with ragged edges', 'Type VII: Watery'];
 
     const save = async () => {
@@ -86,8 +61,7 @@ export default function Add(){
             }
             values.push(photo);
             values.push(note);
-            const result = await db.runAsync("INSERT INTO toilet (urination, urinationColor, isPainUrination, isBM, BMColor, BMshape, isPainBM, isSmell, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", values);
-            console.log(result);
+            await db.runAsync("INSERT INTO toilet (urination, urinationColor, isPainUrination, isBM, BMColor, BMshape, isPainBM, isSmell, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", values);
             router.replace('/toilet/logs');
             ToastAndroid.show("Saved", ToastAndroid.SHORT);
         } catch (error) {
@@ -98,7 +72,7 @@ export default function Add(){
         }
     }
     return (
-        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
+        <ThemedView style={[styles.container]}>
             <View style={styles.sectionHeader}>
                 <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Urination</ThemedText>
                 <Checkbox value={isUrination} onValueChange={setUrination} color={isUrination ? '#4630EB' : undefined} />
@@ -175,19 +149,7 @@ export default function Add(){
                 </View>
             </View>
             
-            <TouchableOpacity 
-                onPress={()=>{pickImage();}}
-                style={[styles.photoButton, photo=="" && styles.photoButtonEmpty]}>
-                {photo?
-                    <View>
-                        <Image source={{uri:photo}} width={200} height={200} />
-                    </View>
-                    :
-                    <View style={styles.photoButtonContent}>
-                        <MaterialIcons name="add-photo-alternate" size={24} color={theme === "dark" ? "#fff" : "black"} />
-                        <ThemedText style={styles.photoButtonText}>Add Photo</ThemedText>
-                    </View>}
-            </TouchableOpacity>
+            <ImageField onChange={(val)=>{setPhoto(val)}}/>
 
             <TextInput
                 style={[
@@ -211,7 +173,7 @@ export default function Add(){
                     <ThemedText style={styles.saveButtonText}>Save</ThemedText>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ThemedView>
     )
 }
 
@@ -263,22 +225,6 @@ const styles = StyleSheet.create({
     shapeOption: {
         margin: 10,
         borderWidth: 1
-    },
-    photoButton: {
-        padding: 10,
-        marginTop: 20,
-        borderRadius: 10
-    },
-    photoButtonEmpty: {
-        backgroundColor: "#e0dcf9"
-    },
-    photoButtonContent: {
-        flexDirection: "row",
-        alignItems: "center"
-    },
-    photoButtonText: {
-        paddingLeft: 10,
-        fontSize: 20
     },
     noteInput: {
         borderWidth: 1,

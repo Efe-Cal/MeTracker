@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { View, TextInput, StyleSheet, ScrollView, ToastAndroid, Text } from "react-native";
+import { View, TextInput, StyleSheet, ScrollView, ToastAndroid } from "react-native";
 import { TouchableOpacity } from "react-native";
 import * as SQLite from 'expo-sqlite';
 import { router } from "expo-router";
@@ -9,8 +9,9 @@ import Entypo from '@expo/vector-icons/Entypo';
 import Checkbox from "expo-checkbox";
 import { NumberField } from "@/components/NumberField";
 import ThemedDropdown from "@/components/ThemedDropdown";
-
-type FieldType = "text" | "number" | "boolean" | "select";
+import { ThemedView } from "@/components/ThemedView";
+import type { FieldType } from "@/types";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 type TrackerField = {
     name: string;
@@ -115,6 +116,8 @@ export default function createTracker() {
                         case "select":
                             sqlType = "TEXT"; // Select fields will be stored as TEXT, options will be in a separate table
                             break;
+                        case "image":
+                            sqlType = "TEXT"; // Image paths will be stored as TEXT
                         default:
                             sqlType = "TEXT";
                     }
@@ -166,7 +169,7 @@ export default function createTracker() {
         router.navigate("/");
     }
     return (
-        <View style={[styles.outer, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
+        <ThemedView style={[styles.outer]}>
             <ScrollView
                 contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}
                 keyboardShouldPersistTaps="handled"
@@ -191,6 +194,15 @@ export default function createTracker() {
                         <ThemedText style={{ color: theme === "dark" ? "#fff" : "#222" }}>
                             {field.name} - {field.type}
                         </ThemedText>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setFields(fields.filter((_, i) => i !== index));
+                                ToastAndroid.show("Field removed successfully", ToastAndroid.SHORT);
+                            }}
+                            style={{ flex:1, flexDirection:"row", justifyContent:"flex-end", paddingRight: 10 }}
+                            >
+                            <MaterialCommunityIcons name="delete" size={24} color="white" />
+                        </TouchableOpacity>
                     </View>
                 ))}
                 { !isSubstanceTracker &&
@@ -286,7 +298,8 @@ export default function createTracker() {
                                 { label: 'Text', value: 'text' },
                                 { label: 'Number', value: 'number' },
                                 { label: 'True/False', value: 'boolean' },
-                                { label: 'Select', value: 'select' }
+                                { label: 'Select', value: 'select' },
+                                { label: 'Image', value: 'image' }
                             ]}
                             value={fieldType}
                             style={[
@@ -359,7 +372,7 @@ export default function createTracker() {
                                 { backgroundColor: "#4630EB" }
                             ]}
                             onPress={() => {
-                                if (trackerName.trim() === "") {
+                                if (fieldName.trim() === "") {
                                     ToastAndroid.show("Field name cannot be empty", ToastAndroid.SHORT);
                                     return;
                                 }
@@ -388,7 +401,7 @@ export default function createTracker() {
             <TouchableOpacity onPress={saveTracker} style={[styles.saveButton, { backgroundColor: "#4630EB" }]}>
                 <ThemedText style={styles.buttonText}>Save</ThemedText>
             </TouchableOpacity>
-        </View>
+        </ThemedView>
     );
 }
 

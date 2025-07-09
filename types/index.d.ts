@@ -14,11 +14,14 @@ export type Tracker = {
     isSubstanceTracker?: boolean;
     substanceData?: JSON;
 };
+
+export type FieldType = "text" | "number" | "boolean" | "select" | "image";
+
 export type Field = {
     id: number;
     trackerId: number;
     name: string;
-    type: "text" | "number" | "boolean" | "select" | "substance";
+    type: FieldType;
     options?: string[]; // For select fields, options can be provided
 };
 

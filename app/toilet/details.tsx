@@ -7,6 +7,7 @@ import * as SQLite from 'expo-sqlite';
 import { useContext } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 
 export default function Details(){
     const log = useLocalSearchParams<{
@@ -39,7 +40,7 @@ export default function Details(){
     }
     const date = new Date(log.time).toDateString();
     return (
-        <View style={{ flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff" }}>
+        <ThemedView style={{ flex: 1 }}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={()=>{
                     router.back();
@@ -120,7 +121,7 @@ export default function Details(){
             {/* Photo */}
             {log.photo.length>0?
             <View style={styles.section}>
-                <View style={styles.sectionHeader}>
+                <View style={[styles.sectionHeader, {borderBottomColor: theme === "dark" ? "#fff" : "#000"}]}>
                     <ThemedText style={styles.sectionHeaderText}>Photo</ThemedText>
                 </View>
                 <View style={styles.photoView}>
@@ -128,7 +129,7 @@ export default function Details(){
                 </View>
             </View>
             :null}
-        </View>
+        </ThemedView>
     );
 }
 

@@ -8,6 +8,7 @@ import { ThemeContext } from '@/theme/ThemeContext';
 import { useIntakes } from '@/hooks/useIntakes';
 import SubstanceLogCard from '@/components/SubstanceLogCard';
 import * as SQLite from 'expo-sqlite/next';
+import { ThemedView } from '@/components/ThemedView';
 
 export default function CustomSubstanceTracker(){
     const { name } = useLocalSearchParams<{ name: string }>();
@@ -39,7 +40,7 @@ export default function CustomSubstanceTracker(){
     }, [name]);
         
     return (
-        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+        <ThemedView style={[styles.container]}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName={name}/>
             
             <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
@@ -50,7 +51,7 @@ export default function CustomSubstanceTracker(){
             })}
 
             <FloatingPlusButton onPress={() => router.navigate({pathname:'/customTrackers/substance/add', params: { name }})} />
-        </View>
+        </ThemedView>
     );
 }
 

@@ -6,6 +6,7 @@ import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 import type { SubstanceItem } from '@/types';
 import { ThemedDropdown } from '@/components/ThemedDropdown';
+import { ThemedView } from './ThemedView';
 
 export default function SubstanceAddPage({ substanceName }: { substanceName: string }) {
     const [value, setValue] = useState('');
@@ -40,7 +41,7 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
     }, []);
 
     return (
-        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
+        <ThemedView style={[styles.container]}>
             {isLoading ? <ThemedText>Loading...</ThemedText>:(
                 <ThemedDropdown
                     data={dropdownData}
@@ -52,14 +53,6 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                         borderColor: theme === "dark" ? "#444" : "gray"
                     }
                     ]}
-                    activeColor={theme === "dark" ? "#333" : "#e0e0e0"}
-                    containerStyle={{
-                    backgroundColor: theme === "dark" ? "#222" : "#fff",
-                    borderColor: theme === "dark" ? "#444" : "gray"
-                    }}
-                    placeholderStyle={{ color: theme === "dark" ? "#555" : "#aaa" }}
-                    selectedTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
-                    itemTextStyle={{ color: theme === "dark" ? "#fff" : "#222" }}
                     labelField="label"
                     valueField="value"
                     onChange={item =>{
@@ -144,7 +137,7 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
             </View>
             }
 
-        </View>
+        </ThemedView>
     );
 }
 

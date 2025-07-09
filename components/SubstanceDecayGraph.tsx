@@ -43,10 +43,10 @@ function calculateSubstanceAmount(intakes: IntakeEntry[], halflife:number, curre
             }
         });
         if (nextWillBeTheCurrentAmmount) {
-            let currentAmount = Math.floor(amount / Math.pow(0.5, 0.25 / halflife));
-            currentAmountSetter(currentAmount);
+            currentAmountSetter((amount > 0 ? Math.floor(amount) : 0));
             nextWillBeTheCurrentAmmount = false;
         }
+
         const now = new Date();
         if (now.getTime() - time.getTime() < interval*(1000*3600) && now.getTime() - time.getTime() >= 0) {
             if(amount === 0){

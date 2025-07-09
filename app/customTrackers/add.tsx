@@ -10,6 +10,8 @@ import { NumberField } from '@/components/NumberField';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import SelectField from '@/components/SelectField';
+import { ThemedView } from '@/components/ThemedView';
+import { ImageField } from '@/components/ImageField';
 
 export default function CustomTrackerAdd() {
   const { name } = useLocalSearchParams() as { name: string };
@@ -104,13 +106,17 @@ export default function CustomTrackerAdd() {
         return (
            <SelectField label={field.name} fieldName={field.name} trackerID={trackerID} onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}/>
         );
+      case "image":
+        return (
+          <ImageField onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.id]: val }))}/>
+        );
       default:
         return <ThemedText key={field.id}>Unsupported field type: {field.type}</ThemedText>;
     }
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff"}}>
+    <ThemedView style={{flex: 1}}>
       <View style={styles.container}>
         {fields.length === 0 ? (
           <ThemedText>No fields defined for this tracker.</ThemedText>
@@ -131,7 +137,7 @@ export default function CustomTrackerAdd() {
         >
           <ThemedText style={{ color: '#fff', textAlign: 'center', fontSize: 16, fontWeight:"bold" }}>Save</ThemedText>
         </TouchableOpacity>
-    </View>
+    </ThemedView>
   );
 }
 

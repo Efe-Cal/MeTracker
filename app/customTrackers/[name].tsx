@@ -13,6 +13,7 @@ import { ThemeContext } from '@/theme/ThemeContext';
 import { Calendar } from 'react-native-calendars'
 import { Ionicons } from '@expo/vector-icons';
 import ThemedDropdown from '@/components/ThemedDropdown';
+import { ThemedView } from '@/components/ThemedView';
 
 export default function CustomTracker() {
   const { name } = useLocalSearchParams() as { name: string };
@@ -197,7 +198,7 @@ export default function CustomTracker() {
             `SELECT * FROM ${result.isSubstanceTracker ? "substance_" : ""}tracker_${result.id}`
           );
           if (trackerData) {
-            setTrackerData(trackerData);
+            setTrackerData(trackerData.reverse());
             console.log("Tracker data:", trackerData);
           }
           await db2.closeAsync();
@@ -212,7 +213,7 @@ export default function CustomTracker() {
   );
   const screenWidth = Dimensions.get('window').width;
   return (
-    <View style={{flex: 1, backgroundColor: theme === "dark" ? "#18181b" : "#fff"}}>
+    <ThemedView style={{flex: 1 }}>
       <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={{ padding: 16, alignItems: 'center', flexDirection:"row", justifyContent:"flex-end", paddingBottom:0}}>
         <Ionicons name={showCalendar ? "list" : "calendar-outline"} size={23} color={theme === "dark" ? "#fff" : "#000"} />
         <ThemedText style={{ marginLeft:3,fontSize: 18, color: theme === "dark" ? "#fff" : "#000" }}>
@@ -270,12 +271,25 @@ export default function CustomTracker() {
               {fields.map((field) => (
                 <View key={field.id} style={styles.fieldContainer}>
                   <ThemedText style={{ fontWeight: 'bold' }}>{field.name}:</ThemedText>
+                  { field.type === "image" ? 
+                    <TouchableOpacity onPress={() => {
+                      if (data[field.name]) {
+                        router.push({
+                          pathname: '/imageViewer',
+                          params: { uri: data[field.name] }
+                        });
+                      }
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent:"flex-end", flex:1, paddingRight: 10 }}>
+                      <FontAwesome name="image" size={24} color={theme === "dark" ? "#fff" : "#000"} />
+                    </TouchableOpacity>:null}
                   <ThemedText>
-                    {field.type=="boolean" ? 
-                      (data[field.name]?
-                        <FontAwesome name="check-square" size={24} color="green" />
-                        :<FontAwesome name="close" size={24} color="red" />) 
-                      :data[field.name]}
+                    {field.type === "boolean"
+                      ? (data[field.name]
+                          ? <FontAwesome name="check-square" size={24} color="green" />
+                          : <FontAwesome name="close" size={24} color="red" />)
+                      : (field.type!=="image"?data[field.name]:null)
+                    }
                   </ThemedText>
                 </View>
               ))}
@@ -284,7 +298,7 @@ export default function CustomTracker() {
         </ScrollView>
       ):
       (
-        <View style={[styles.container, { flexDirection: 'column', alignItems: 'center', backgroundColor: theme === "dark" ? "#18181b" : "#fff" }]}>
+        <ThemedView style={[styles.container, { flexDirection: 'column', alignItems: 'center'}]}>
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -411,11 +425,11 @@ export default function CustomTracker() {
             markingType={'multi-dot'}
             markedDates={markedDates}
           />
-        </View>
+        </ThemedView>
       )}
       
       <FloatingPlusButton onPress={() => router.navigate({ pathname: '/customTrackers/add', params: { name } })} />
-    </View>
+    </ThemedView>
   );
 }
 

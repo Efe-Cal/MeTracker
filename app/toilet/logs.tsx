@@ -9,6 +9,7 @@ import { router } from "expo-router";
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
+import { ThemedView } from "@/components/ThemedView";
 
 
 export type Log = {
@@ -93,7 +94,7 @@ export default function Logs() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+    <ThemedView style={[styles.container]}>
       {/* <TouchableOpacity onPress={()=>fetchData()}><Text>Refresh</Text></TouchableOpacity> */}
       {logs.length>0?
       <ScrollView
@@ -107,7 +108,7 @@ export default function Logs() {
       :<ThemedText>No Logs</ThemedText>}
       
       <FloatingPlusButton onPress={() => router.navigate('/toilet/add')} />
-    </View>
+    </ThemedView>
   );
 }
 

@@ -9,6 +9,7 @@ import { useIntakes } from '@/hooks/useIntakes';
 import SubstanceLogCard from '@/components/SubstanceLogCard';
 import { useEffect } from 'react';
 import * as SQLite from 'expo-sqlite';
+import { ThemedView } from '@/components/ThemedView';
 
 
 export default function Caffeine(){
@@ -40,16 +41,16 @@ export default function Caffeine(){
     }, []);
 
     return (
-        <View style={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+        <ThemedView style={[styles.container]}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName='caffeine'/>
             <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
             {intakes.reverse().slice(0,11).map((intake) => {
                 return (
-                    <SubstanceLogCard key={intake.time} log={intake} substance='caffeine'/>
+                    <SubstanceLogCard key={intake.time} log={intake} substance='caffeine' substanceUnit='mg'/>
                 );
             })}
             <FloatingPlusButton onPress={() => router.navigate('/caffeine/add')} />
-        </View>
+        </ThemedView>
     );
 }
 

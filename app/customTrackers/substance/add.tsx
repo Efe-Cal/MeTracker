@@ -6,9 +6,13 @@ export default function CustomSubstanceAdd() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const navigation = useNavigation();
 
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   useEffect(() => {
     if (name) {
-      navigation.setOptions?.({ title: name + " Add Item"});
+      navigation.setOptions?.({ title: capitalizeFirstLetter(name) + " Add Item"});
     }
   }, [name, navigation]);
 
