@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { View, TextInput, StyleSheet, ScrollView, ToastAndroid } from "react-native";
+import { View, TextInput, StyleSheet, ScrollView } from "react-native";
 import { TouchableOpacity } from "react-native";
 import * as SQLite from 'expo-sqlite';
 import { router } from "expo-router";
@@ -12,6 +12,7 @@ import ThemedDropdown from "@/components/ThemedDropdown";
 import { ThemedView } from "@/components/ThemedView";
 import type { FieldType } from "@/types";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Toast from 'react-native-toast-message';
 
 type TrackerField = {
     name: string;
@@ -35,23 +36,23 @@ export default function createTracker() {
 
     async function saveTracker() {
         if (trackerName.trim() === "") {
-            ToastAndroid.show("Tracker name cannot be empty", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Tracker name cannot be empty" });
             return;
         }
         if (fields.length === 0 && !isSubstanceTracker) {
-            ToastAndroid.show("At least one field is required", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "At least one field is required" });
             return;
         }
         if (isSubstanceTracker && substanceHalfLife <= 0) {
-            ToastAndroid.show("Substance half-life must be a positive number", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Substance half-life must be a positive number" });
             return;
         }
         if (isSubstanceTracker && substanceUnit.trim() === "") {
-            ToastAndroid.show("Substance unit cannot be empty", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Substance unit cannot be empty" });
             return;
         }
         if (maxSubstanceAmount < 0 && isSubstanceTracker) {
-            ToastAndroid.show("Max substance amount cannot be negative", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Max substance amount cannot be negative" });
             return;
         }
         setTrackerName(trackerName.trim());
@@ -161,10 +162,10 @@ export default function createTracker() {
             }
         });
         customTrackersDB.closeAsync();
-        ToastAndroid.show("Tracker saved successfully!", ToastAndroid.SHORT);
+        Toast.show({ type: "success", text1: "Tracker saved successfully!" });
         } catch (error) {
             console.error("Error saving tracker:", error);
-            ToastAndroid.show("Failed to save tracker. Please try again.", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Failed to save tracker. Please try again." });
         }
         router.navigate("/");
     }
@@ -197,7 +198,7 @@ export default function createTracker() {
                         <TouchableOpacity
                             onPress={() => {
                                 setFields(fields.filter((_, i) => i !== index));
-                                ToastAndroid.show("Field removed successfully", ToastAndroid.SHORT);
+                                Toast.show({ type: "info", text1: "Field removed successfully" });
                             }}
                             style={{ flex:1, flexDirection:"row", justifyContent:"flex-end", paddingRight: 10 }}
                             >
@@ -373,11 +374,11 @@ export default function createTracker() {
                             ]}
                             onPress={() => {
                                 if (fieldName.trim() === "") {
-                                    ToastAndroid.show("Field name cannot be empty", ToastAndroid.SHORT);
+                                    Toast.show({ type: "error", text1: "Field name cannot be empty" });
                                     return;
                                 }
                                 if (fieldType === "select" && selectOptions.length === 0) {
-                                    ToastAndroid.show("Select field must have at least one option", ToastAndroid.SHORT);
+                                    Toast.show({ type: "error", text1: "Select field must have at least one option" });
                                     return;
                                 }
                                 if (fieldType === "select"){
@@ -391,7 +392,7 @@ export default function createTracker() {
                                 setFieldType("text");
                                 setSelectOptions([]);
                                 setShowCreateSelectOption(false);
-                                ToastAndroid.show("Field added successfully", ToastAndroid.SHORT);
+                                Toast.show({ type: "info", text1: "Field added successfully" });
                             }}>
                             <ThemedText style={styles.buttonText}>Save Field</ThemedText>
                         </TouchableOpacity>

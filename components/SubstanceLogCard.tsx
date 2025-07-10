@@ -5,7 +5,7 @@ import { Card } from './Card';
 import { ThemedText } from './ThemedText';
 import type { IntakeEntry } from '../types';
 import * as SQLite from 'expo-sqlite/next';
-import { ToastAndroid } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 
 const locale = getLocales()[0].languageTag as string;
@@ -26,7 +26,7 @@ export default function SubstanceLogCard({log, substance, substanceUnit}: {log: 
                 console.log("Deleting entry with ID:", log);
                 await db.runAsync(`DELETE FROM ${substance}_intakes WHERE time = ?`, [log.time]);
                 setDeleted(true);
-                ToastAndroid.show("Entry deleted successfully", ToastAndroid.SHORT);
+                Toast.show({ type: "success", text1: "Entry deleted successfully" });
                 await db.closeAsync();
                 }
             }

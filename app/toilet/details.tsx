@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { View, TouchableOpacity, Image, ToastAndroid, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Image, Alert, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { router } from 'expo-router';
@@ -8,6 +8,7 @@ import { useContext } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import Toast from 'react-native-toast-message';
 
 export default function Details(){
     const log = useLocalSearchParams<{
@@ -29,11 +30,11 @@ export default function Details(){
         try {
             db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
             await db.runAsync(`DELETE FROM toilet WHERE time=?`,[log.time]);
-            ToastAndroid.show("Log Deleted",ToastAndroid.SHORT);
+            Toast.show({ type: "success", text1: "Log Deleted" });
             router.back();
         } catch (error) {
             console.error("Failed to delete log:", error);
-            ToastAndroid.show("Failed to delete log", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Failed to delete log" });
         } finally {
             db?.closeSync();
         }

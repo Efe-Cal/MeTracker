@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import { useContext } from 'react';
 import { router } from 'expo-router';

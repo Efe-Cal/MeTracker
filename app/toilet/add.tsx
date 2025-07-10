@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Image, TextInput, ToastAndroid, StyleSheet, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Image, TextInput, StyleSheet, ScrollView } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { useState, useContext } from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -8,6 +8,7 @@ import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ImageField } from '@/components/ImageField';
+import Toast from 'react-native-toast-message';
 
 export default function Add(){
 
@@ -63,10 +64,10 @@ export default function Add(){
             values.push(note);
             await db.runAsync("INSERT INTO toilet (urination, urinationColor, isPainUrination, isBM, BMColor, BMshape, isPainBM, isSmell, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", values);
             router.replace('/toilet/logs');
-            ToastAndroid.show("Saved", ToastAndroid.SHORT);
+            Toast.show({ type: "success", text1: "Saved" });
         } catch (error) {
             console.error("Failed to save toilet log:", error);
-            ToastAndroid.show("Failed to save", ToastAndroid.SHORT);
+            Toast.show({ type: "error", text1: "Failed to save" });
         } finally {
             db?.closeSync();
         }
@@ -149,7 +150,7 @@ export default function Add(){
                 </View>
             </View>
             
-            <ImageField onChange={(val)=>{setPhoto(val)}}/>
+            <ImageField label='Image' onChange={(val)=>{setPhoto(val)}}/>
 
             <TextInput
                 style={[

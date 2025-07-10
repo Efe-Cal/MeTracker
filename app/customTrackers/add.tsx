@@ -8,7 +8,6 @@ import { BooleanField } from '@/components/BooleanField';
 import { TextField } from '@/components/TextField';
 import { NumberField } from '@/components/NumberField';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemeContext } from '@/theme/ThemeContext';
 import SelectField from '@/components/SelectField';
 import { ThemedView } from '@/components/ThemedView';
 import { ImageField } from '@/components/ImageField';
@@ -19,7 +18,7 @@ export default function CustomTrackerAdd() {
   const [fields, setFields] = useState([] as Field[]);
   const [trackerID, setTrackerID] = useState<number | null>(null);
   const [fieldValues, setFieldValues] = useState<{ [fieldId: number]: any }>({});
-  const { theme } = useContext(ThemeContext);
+
   useEffect(() => {
     // Set the screen title to the tracker name
     navigation.setOptions?.({ title: name });

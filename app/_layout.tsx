@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 import { ThemeProvider, ThemeContext } from '@/theme/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
+import Toast from 'react-native-toast-message';
 
 export default function Layout() {
   const themeContextRef = useRef<{ theme: string; toggleTheme: () => void } | null>(null);
@@ -84,6 +85,7 @@ export default function Layout() {
             );
           }}
         </ThemeContext.Consumer>
+        <Toast/>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

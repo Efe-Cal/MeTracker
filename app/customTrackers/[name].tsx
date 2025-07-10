@@ -1,5 +1,5 @@
 import { useLocalSearchParams, } from 'expo-router';
-import { View, StyleSheet, ScrollView, Alert, ToastAndroid, TouchableOpacity, Dimensions, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, TouchableOpacity, Dimensions, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { useState, useCallback, useContext, useEffect } from 'react';
@@ -14,6 +14,7 @@ import { Calendar } from 'react-native-calendars'
 import { Ionicons } from '@expo/vector-icons';
 import ThemedDropdown from '@/components/ThemedDropdown';
 import { ThemedView } from '@/components/ThemedView';
+import Toast from 'react-native-toast-message';
 
 export default function CustomTracker() {
   const { name } = useLocalSearchParams() as { name: string };
@@ -245,10 +246,10 @@ export default function CustomTracker() {
                         console.log("Deleting entry with ID:", data);
                         await db.runAsync(`DELETE FROM tracker_${trackerID} WHERE created_at = ?`, [data.created_at]);
                         setTrackerData((prevData) => prevData.filter((item) => item.created_at !== data.created_at));
-                        ToastAndroid.show("Entry deleted successfully", ToastAndroid.SHORT);
+                        Toast.show({ type: "success", text1: "Entry deleted successfully" });
                       } catch (error) {
                         console.error("Error deleting entry:", error);
-                        ToastAndroid.show("Failed to delete entry", ToastAndroid.SHORT);
+                        Toast.show({ type: "error", text1: "Failed to delete entry" });
                       } finally {
                         await db?.closeAsync();
                       }
@@ -283,7 +284,7 @@ export default function CustomTracker() {
                     style={{ flexDirection: 'row', alignItems: 'center', justifyContent:"flex-end", flex:1, paddingRight: 10 }}>
                       <FontAwesome name="image" size={24} color={theme === "dark" ? "#fff" : "#000"} />
                     </TouchableOpacity>:null}
-                  <ThemedText>
+                  <ThemedText style={{maxWidth:"70%"}}>
                     {field.type === "boolean"
                       ? (data[field.name]
                           ? <FontAwesome name="check-square" size={24} color="green" />

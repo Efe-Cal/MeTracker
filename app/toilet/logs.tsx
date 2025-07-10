@@ -1,4 +1,4 @@
-import { ScrollView, View, StyleSheet, TouchableOpacity, Alert, ToastAndroid } from "react-native";
+import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Card } from "@/components/Card";
 import { useCallback, useContext } from "react";
 import * as SQLite from 'expo-sqlite';
@@ -10,7 +10,6 @@ import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedView } from "@/components/ThemedView";
-
 
 export type Log = {
   time: string;
