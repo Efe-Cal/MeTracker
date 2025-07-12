@@ -5,29 +5,30 @@ import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { useState, useCallback, useContext, useEffect } from 'react';
 import * as SQLite from 'expo-sqlite/next';
 import { Tracker, Field } from '@/types';
-import { Card } from '@/components/Card';
 import { useFocusEffect } from 'expo-router';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { Calendar } from 'react-native-calendars'
 import { Ionicons } from '@expo/vector-icons';
 import ThemedDropdown from '@/components/ThemedDropdown';
 import { ThemedView } from '@/components/ThemedView';
-import Toast from 'react-native-toast-message';
+import CustomTrackerLogCard from '@/components/CustomtTrackerLogCard';
+
 
 export default function CustomTracker() {
   const { name } = useLocalSearchParams() as { name: string };
-  const [fields, setFields] = useState([] as Field[]);
-  const [trackerData, setTrackerData] = useState<any[]>([]); // Adjust type as needed
+  const [ fields, setFields ] = useState([] as Field[]);
+  const [ trackerData, setTrackerData ] = useState<any[]>([]); // Adjust type as needed
   const { theme } = useContext(ThemeContext);
-  const [trackerID, setTrackerID] = useState<number | null>(null);
+  const [ trackerID, setTrackerID ] = useState<number | null>(null);
   const [ showCalendar, setShowCalendar ] = useState(false);
   const [ selectedField, setSelectedField ] = useState<Field | null>(null);
   const [ selectedOperator, setSelectedOperator ] = useState<string | null>(null);
   const [ inputValue, setInputValue ] = useState<string>("");
   const [ markedDates, setMarkedDates ] = useState<{[key: string]: {dots:{key:string, color:string}[]}}>({});
   const [ allowedOperators, setAllowedOperators ] = useState<{label:string,value:string}[]>([]);
+  const [ selectedDate, setSelectedDate ] = useState<string | null>(null);
+  const [ selectedDateEntries, setSelectedDateEntries ] = useState<any[]>([]);
 
   const allOperators = [
     {"label": "<", "value": "<"},
@@ -37,6 +38,26 @@ export default function CustomTracker() {
     {"label": "=", "value": "="},
     {"label": "≠", "value": "!="}
   ]
+
+  useEffect(()=>{
+    if (selectedDate) {
+      const entries = trackerData.filter(data => {
+        const date = new Date(data.created_at);
+        const dateString = date.toISOString().split('T')[0];
+
+        const hasDot = markedDates.hasOwnProperty(dateString) &&
+          markedDates[dateString].dots.some(dot => dot.key === data.created_at && dot.color === '#7c5cff');
+
+        return (dateString === selectedDate && hasDot);
+      });
+      setSelectedDateEntries(entries);
+      console.log("Selected date entries:", entries);
+    } else {
+      setSelectedDateEntries([]);
+    }
+
+  },[markedDates, selectedDate, trackerData]);
+
 
   const updateMarkedDates = useCallback(() => {
     console.log(selectedField)
@@ -231,80 +252,24 @@ export default function CustomTracker() {
             </View>
           )}
           {trackerData.map((data, index) => (
-            <Card 
+            <CustomTrackerLogCard
               key={index}
-              style={{ marginBottom: 16, padding: 16, width: '100%', flexDirection: 'column', alignSelf:"center" }}  
-              onSwipe={(direction) => {
-                Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
-                  {text: "Cancel", style: "cancel"},
-                  {
-                    text: "Delete", style: "destructive",
-                    onPress: async () => {  
-                      let db: SQLite.SQLiteDatabase | null = null;
-                      try {
-                        db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-                        console.log("Deleting entry with ID:", data);
-                        await db.runAsync(`DELETE FROM tracker_${trackerID} WHERE created_at = ?`, [data.created_at]);
-                        setTrackerData((prevData) => prevData.filter((item) => item.created_at !== data.created_at));
-                        Toast.show({ type: "success", text1: "Entry deleted successfully" });
-                      } catch (error) {
-                        console.error("Error deleting entry:", error);
-                        Toast.show({ type: "error", text1: "Failed to delete entry" });
-                      } finally {
-                        await db?.closeAsync();
-                      }
-                    }
-                  }
-                ]);
-              }}
-            >
-              {/* // show created_at */}
-              <View style={{borderBottomWidth: 1, borderBottomColor: "#222", paddingBottom: 8 }}>
-                <ThemedText style={{ fontSize: 18, fontWeight: 'bold' }}>
-                  {data.created_at
-                    ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
-                      " " +
-                      new Date(data.created_at).toLocaleDateString()
-                    : "No date available"}
-                </ThemedText>
-              </View>
-              {/* Render data content here if needed */}
-              {fields.map((field) => (
-                <View key={field.id} style={styles.fieldContainer}>
-                  <ThemedText style={{ fontWeight: 'bold' }}>{field.name}:</ThemedText>
-                  { field.type === "image" ? 
-                    <TouchableOpacity onPress={() => {
-                      if (data[field.name]) {
-                        router.push({
-                          pathname: '/imageViewer',
-                          params: { uri: data[field.name] }
-                        });
-                      }
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent:"flex-end", flex:1, paddingRight: 10 }}>
-                      <FontAwesome name="image" size={24} color={theme === "dark" ? "#fff" : "#000"} />
-                    </TouchableOpacity>:null}
-                  <ThemedText style={{maxWidth:"70%"}}>
-                    {field.type === "boolean"
-                      ? (data[field.name]
-                          ? <FontAwesome name="check-square" size={24} color="green" />
-                          : <FontAwesome name="close" size={24} color="red" />)
-                      : (field.type!=="image"?data[field.name]:null)
-                    }
-                  </ThemedText>
-                </View>
-              ))}
-            </Card>
+              index={index}
+              data={data}
+              trackerID={String(trackerID)}
+              fields={fields}
+              setTrackerData={setTrackerData}
+            />
           ))}
         </ScrollView>
       ):
       (
-        <ThemedView style={[styles.container, { flexDirection: 'column', alignItems: 'center'}]}>
+        <ThemedView style={[styles.container, { flexDirection: 'column', alignItems: 'center', flex: 1 }]}>
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
             width: (screenWidth * 0.9) - 32,
-            marginBottom: 8
+            marginBottom: 8,
           }}>
             <ThemedDropdown
               style={{
@@ -424,8 +389,33 @@ export default function CustomTracker() {
               textDayHeaderFontSize: 14,
             }}
             markingType={'multi-dot'}
-            markedDates={markedDates}
+            markedDates={{
+              ...markedDates,
+              ...(selectedDate ? { [selectedDate]: { ...(markedDates[selectedDate] || {}), selected: true, marked:true, selectedColor:"#395fc086"} } : {})
+            }}
+            onDayPress={(day:any) => {
+              console.log("Selected day:", day);
+              setSelectedDate(day.dateString);
+            }}
           />
+          { selectedDate && selectedField && selectedOperator && inputValue ? (
+            <ScrollView
+            style={{width: (screenWidth * 0.9) - 32, marginTop: 8, padding:3, }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            >
+              {selectedDateEntries.map((data, index) => (
+                <CustomTrackerLogCard
+                  key={index}
+                  index={index}
+                  data={data}
+                  trackerID={String(trackerID)}
+                  fields={fields}
+                  setTrackerData={setTrackerData}
+                />
+              ))}
+            </ScrollView>
+            ):null}
         </ThemedView>
       )}
       
