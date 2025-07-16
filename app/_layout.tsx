@@ -42,17 +42,24 @@ export default function Layout() {
                     headerLeft: () => null,
                     headerRight: () => (
                       <Pressable
-                        onPress={() => themeContext?.toggleTheme()}
+                        onPress={() => router.push("/settings")}
                         style={{
                           marginRight: 12,
                           padding: 8,
                           borderRadius: 8,
-                          backgroundColor: themeContext?.theme === "dark" ? "#27272a" : "#e5e7eb"
+                          backgroundColor: themeContext?.theme === "dark" ? "#27272a" : "#e5e7eb",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          width: 40,
+                          height: 40,
+                          justifyContent: "center",
                         }}
                       >
-                        <ThemedText style={{ color: themeContext?.theme === "dark" ? "#fff" : "#222" }}>
-                          {themeContext?.theme === "dark" ? "☀️" : "🌙"}
-                        </ThemedText>
+                        <Feather
+                          name="settings"
+                          size={22}
+                          color={themeContext?.theme === "dark" ? "#fff" : "#222"}
+                        />
                       </Pressable>
                     ),
                   }}
@@ -79,6 +86,12 @@ export default function Layout() {
                   name="customTrackers"
                   options={{
                     headerShown: false
+                  }}
+                />
+                <Stack.Screen
+                  name="settings"
+                  options={{
+                    title: "Settings",
                   }}
                 />
               </Stack>

@@ -45,7 +45,8 @@
     "react-native-screens": "3.31.1",
     "react-native-toast-message": "^2.3.3",
     "react-native-web": "~0.19.10",
-    "victory-native": "^41.4.0"
+    "victory-native": "^41.4.0",
+    "expo-secure-store": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
