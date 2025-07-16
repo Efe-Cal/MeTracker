@@ -38,30 +38,7 @@ export default function Layout() {
                 <Stack.Screen
                   name="index"
                   options={{
-                    title: "MeTracker Home",
-                    headerLeft: () => null,
-                    headerRight: () => (
-                      <Pressable
-                        onPress={() => router.push("/settings")}
-                        style={{
-                          marginRight: 12,
-                          padding: 8,
-                          borderRadius: 8,
-                          backgroundColor: themeContext?.theme === "dark" ? "#27272a" : "#e5e7eb",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          width: 40,
-                          height: 40,
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Feather
-                          name="settings"
-                          size={22}
-                          color={themeContext?.theme === "dark" ? "#fff" : "#222"}
-                        />
-                      </Pressable>
-                    ),
+                    headerShown: false,
                   }}
                 />
                 <Stack.Screen

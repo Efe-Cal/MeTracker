@@ -1,11 +1,14 @@
-import { Button, ScrollView, StyleSheet, TouchableOpacity,Text} from "react-native";
-import { Href, Link, useFocusEffect } from "expo-router";
+import { Button, ScrollView, StyleSheet, TouchableOpacity, Text, View, Pressable } from "react-native";
+import { Href, Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useState } from "react";
 import * as SQLite from 'expo-sqlite';
 import { ThemeContext } from "@/theme/ThemeContext";
 import { Card } from "@/components/Card";
 import { ThemedText } from "@/components/ThemedText";
 import SignIn from "@/components/SignIn";
+import { useEffect } from "react";
+import { useNavigation } from "expo-router";
+import { Feather } from '@expo/vector-icons';
 
 export default function Index() {
   const [ customTrackers, setCustomTrackers ] = useState<{ name: string, isSubstanceTracker?:boolean }[]>([]);
@@ -42,51 +45,95 @@ export default function Index() {
 
   return (
     (passedAuth ? (
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
-        <ThemedText style={[styles.header, { color: theme === "dark" ? "#fff" : "#222" }]}>Welcome to the MeTracker.</ThemedText>
-        <ThemedText style={[styles.subheader, { color: theme === "dark" ? "#ccc" : "#222" }]}>This app lets you keep track of your health.</ThemedText>
-        <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Prebuilt Trackers</ThemedText>
-        <Link href="/caffeine/logs" asChild>
-          <TouchableOpacity style={{ width: "100%" }}>
-            <Card style={styles.fullWidthCard}>
-              <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Caffeine Tracker</ThemedText>
-            </Card>
-          </TouchableOpacity>
-        </Link>
-        <Link href="/toilet/logs" asChild>
-          <TouchableOpacity style={{ width: "100%" }}>
-            <Card style={styles.fullWidthCard}>
-              <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Toilet Logs</ThemedText>
-            </Card>
-          </TouchableOpacity>
-        </Link>
-        <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Custom Trackers</ThemedText>
-        {(customTrackers.length === 0 || (customTrackers.length===1 && customTrackers[0].name==="caffeine")) && (
-          <ThemedText style={[styles.emptyText, { color: theme === "dark" ? "#888" : "#888" }]}>No custom trackers yet.</ThemedText>
-        )}
-        {customTrackers.map((tracker, idx) => {
-          const href = (tracker.isSubstanceTracker
-            ? `/customTrackers/substance/${tracker.name}`
-            : `/customTrackers/${tracker.name}`) as Href;
-          if (tracker.name === "caffeine" ) return null; // Skip the caffeine tracker as it's already listed above
-          return (
-            <Link key={tracker.name + idx} href={href} asChild>
-              <TouchableOpacity style={{ width: "100%" }}>
-                <Card style={styles.fullWidthCard}>
-                  <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>{tracker.name}</ThemedText>
-                </Card>
-              </TouchableOpacity>
-            </Link>
-          );
-        })}
-        <Link href="/createTracker/createMenu" asChild>
-          <TouchableOpacity>
-            <Card style={[styles.createButton, styles.fullWidthCard]}>
-              <ThemedText style={[styles.cardText, { color: "#4630EB" }]}>+ Create New Tracker</ThemedText>
-            </Card>
-          </TouchableOpacity>
-        </Link>
-      </ScrollView>
+      <>
+        {/* Custom Header */}
+        <View style={{
+          width: "100%",
+          paddingTop: 32,
+          paddingBottom: 12,
+          paddingHorizontal: 24,
+          backgroundColor: theme === "dark" ? "#18181b" : "#fff",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}>
+          <ThemedText style={{
+            fontSize: 22,
+            fontWeight: "bold",
+            color: theme === "dark" ? "#fff" : "#222",
+            flex: 1,
+          }}>
+            MeTracker Home
+          </ThemedText>
+          {/* headerRight */}
+          <Pressable
+            onPress={() => router.push("/settings")}
+            style={{
+              marginRight: 12,
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: theme === "dark" ? "#27272a" : "#e5e7eb",
+              flexDirection: "row",
+              alignItems: "center",
+              width: 40,
+              height: 40,
+              justifyContent: "center",
+            }}
+          >
+            <Feather
+              name="settings"
+              size={22}
+              color={theme === "dark" ? "#fff" : "#222"}
+            />
+          </Pressable>
+        </View>
+        {/* Main Content */}
+        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
+          <ThemedText style={[styles.header, { color: theme === "dark" ? "#fff" : "#222" }]}>Welcome to the MeTracker.</ThemedText>
+          <ThemedText style={[styles.subheader, { color: theme === "dark" ? "#ccc" : "#222" }]}>This app lets you keep track of your health.</ThemedText>
+          <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Prebuilt Trackers</ThemedText>
+          <Link href="/caffeine/logs" asChild>
+            <TouchableOpacity style={{ width: "100%" }}>
+              <Card style={styles.fullWidthCard}>
+                <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Caffeine Tracker</ThemedText>
+              </Card>
+            </TouchableOpacity>
+          </Link>
+          <Link href="/toilet/logs" asChild>
+            <TouchableOpacity style={{ width: "100%" }}>
+              <Card style={styles.fullWidthCard}>
+                <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>Toilet Logs</ThemedText>
+              </Card>
+            </TouchableOpacity>
+          </Link>
+          <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Custom Trackers</ThemedText>
+          {(customTrackers.length === 0 || (customTrackers.length===1 && customTrackers[0].name==="caffeine")) && (
+            <ThemedText style={[styles.emptyText, { color: theme === "dark" ? "#888" : "#888" }]}>No custom trackers yet.</ThemedText>
+          )}
+          {customTrackers.map((tracker, idx) => {
+            const href = (tracker.isSubstanceTracker
+              ? `/customTrackers/substance/${tracker.name}`
+              : `/customTrackers/${tracker.name}`) as Href;
+            if (tracker.name === "caffeine" ) return null; // Skip the caffeine tracker as it's already listed above
+            return (
+              <Link key={tracker.name + idx} href={href} asChild>
+                <TouchableOpacity style={{ width: "100%" }}>
+                  <Card style={styles.fullWidthCard}>
+                    <ThemedText style={[styles.cardText, theme === "dark" && { color: "#fff" }]}>{tracker.name}</ThemedText>
+                  </Card>
+                </TouchableOpacity>
+              </Link>
+            );
+          })}
+          <Link href="/createTracker/createMenu" asChild>
+            <TouchableOpacity>
+              <Card style={[styles.createButton, styles.fullWidthCard]}>
+                <ThemedText style={[styles.cardText, { color: "#4630EB" }]}>+ Create New Tracker</ThemedText>
+              </Card>
+            </TouchableOpacity>
+          </Link>
+        </ScrollView>
+      </>
     ):(
       <SignIn setPassedAuth={setPassedAuth} />
     ))
