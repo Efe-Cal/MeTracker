@@ -2,6 +2,8 @@
 
 MeTracker is a React Native (Expo) application for personal health and habit tracking. It ships with a set of prebuilt trackers (e.g. caffeine intake and toilet logs) and lets you create fully custom trackers (including substance trackers with decay visualization). Data is stored locally using SQLite for privacy and offline reliability.
 
+<img width="1053" height="725" alt="Adsız tasarım (3)" src="https://github.com/user-attachments/assets/0aecb50a-d796-47db-9ea7-a427be0f5b7a" />
+
 ## Key Features
 
 ### 1. Prebuilt Trackers
