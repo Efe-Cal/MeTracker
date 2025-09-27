@@ -236,6 +236,7 @@ export default function SubstanceDecayGraph({intakes, halflife: halflifeProp, th
     // Filter intakes and calculate substance amount
     useEffect(() => {
         let isMounted = true;
+        loadSubstanceData();
         const filterData = async () => {
             try {
                 const filteredIntakes = intakes

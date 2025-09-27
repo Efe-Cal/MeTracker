@@ -6,6 +6,7 @@ import { ThemedText } from './ThemedText';
 import type { IntakeEntry } from '../types';
 import * as SQLite from 'expo-sqlite/next';
 import Toast from 'react-native-toast-message';
+import { getIntakesTableName } from '@/utils/sanitizeForSQL';
 
 
 const locale = getLocales()[0].languageTag as string;
@@ -24,7 +25,8 @@ export default function SubstanceLogCard({log, substance, substanceUnit}: {log: 
                 onPress: async () => {  
                 const db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
                 console.log("Deleting entry with ID:", log);
-                await db.runAsync(`DELETE FROM ${substance}_intakes WHERE time = ?`, [log.time]);
+                const tableName = getIntakesTableName(substance);
+                await db.runAsync(`DELETE FROM ${tableName} WHERE time = ?`, [log.time]);
                 setDeleted(true);
                 Toast.show({ type: "success", text1: "Entry deleted successfully" });
                 await db.closeAsync();

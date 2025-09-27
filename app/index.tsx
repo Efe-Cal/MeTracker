@@ -49,7 +49,7 @@ export default function Index() {
         {/* Custom Header */}
         <View style={{
           width: "100%",
-          paddingTop: 32,
+          paddingTop: 48,
           paddingBottom: 12,
           paddingHorizontal: 24,
           backgroundColor: theme === "dark" ? "#18181b" : "#fff",
@@ -89,8 +89,8 @@ export default function Index() {
         </View>
         {/* Main Content */}
         <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme === "dark" ? "#18181b" : "#f8f9fa" }]}>
-          <ThemedText style={[styles.header, { color: theme === "dark" ? "#fff" : "#222" }]}>Welcome to the MeTracker.</ThemedText>
-          <ThemedText style={[styles.subheader, { color: theme === "dark" ? "#ccc" : "#222" }]}>This app lets you keep track of your health.</ThemedText>
+          <ThemedText style={[styles.header, { color: theme === "dark" ? "#fff" : "#222" }]}>Welcome to the MeTracker</ThemedText>
+          <ThemedText style={[styles.subheader, { color: theme === "dark" ? "#ccc" : "#222" }]}>Keep track of everything</ThemedText>
           <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#222" }]}>Prebuilt Trackers</ThemedText>
           <Link href="/caffeine/logs" asChild>
             <TouchableOpacity style={{ width: "100%" }}>

@@ -5,6 +5,7 @@ import React from 'react';
 import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import * as SQLite from 'expo-sqlite/next';
 import { router } from 'expo-router';
+import { getIntakesTableName } from '@/utils/sanitizeForSQL';
 
 export default function CustomTrackersSettings() {
 	const { name, isSubstance } = useLocalSearchParams() as unknown as { name: string, isSubstance?: boolean };
@@ -24,7 +25,7 @@ export default function CustomTrackersSettings() {
 			}
 			// Open MeTracker DB and delete all rows from the corresponding tracker table
 			db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-			let tableName = isSubstance ? `${name}_intakes` : `tracker_${tracker.id}`;
+			let tableName = isSubstance ? getIntakesTableName(name) : `tracker_${tracker.id}`;
 			await db.runAsync(`DELETE FROM ${tableName}`);
 			console.log(`Custom tracker "${name}" (tracker_${tracker.id}) has been reset.`);
 			router.back();
@@ -79,7 +80,8 @@ export default function CustomTrackersSettings() {
 				await customTrackersDB.runAsync(`DELETE FROM fields WHERE trackerId = ?`, [tracker.id]);
 			} else {
 				db = await SQLite.openDatabaseAsync("MeTracker.db", { useNewConnection: true });
-				await db.runAsync(`DROP TABLE IF EXISTS ${name}_intakes`);
+				const tableName = getIntakesTableName(name);
+				await db.runAsync(`DROP TABLE IF EXISTS ${tableName}`);
 			}
 			console.log(`Custom tracker "${name}" has been deleted.`);
 			router.navigate("/");

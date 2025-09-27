@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import type { SubstanceItem } from '@/types';
 import { ThemedDropdown } from '@/components/ThemedDropdown';
 import { ThemedView } from './ThemedView';
+import { getIntakesTableName } from '@/utils/sanitizeForSQL';
 
 export default function SubstanceAddPage({ substanceName }: { substanceName: string }) {
     const [value, setValue] = useState('');
@@ -122,10 +123,11 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                     onPress={ async () => {
                         if(selectedItem){
                             const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
-                            await db.runAsync(`INSERT INTO ${substanceName}_intakes (name, amount) VALUES (?, ?)`, [selectedItem.name, selectedItem.amount]);
+                            const tableName = getIntakesTableName(substanceName);
+                            await db.runAsync(`INSERT INTO ${tableName} (name, amount) VALUES (?, ?)`, [selectedItem.name, selectedItem.amount]);
                             console.log("Added", selectedItem);
                             db.closeSync();
-                            if (name === "caffeine") {
+                            if (substanceName === "caffeine") {
                                 router.navigate("/caffeine/logs")
                             } else {
                                 router.navigate(`/customTrackers/substance/${substanceName}`);

@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.efecal.MeTracker"
     },
     "web": {
       "bundler": "metro",
@@ -33,6 +34,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "714ad879-12e1-4f61-9175-1f6d1f3a4402"
+      }
     }
   }
 }
