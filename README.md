@@ -139,7 +139,3 @@ All screens read current theme from context and apply palette defined in [`const
 
 ---
 Built to help individuals observe patterns in daily health metrics with full local ownership of their data.
-
-# Demo
-1. Install Expo Go on your mobile device.
-2. Enter the following URL in Expo Go to load the app: 
