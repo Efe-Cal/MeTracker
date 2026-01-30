@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
         width: "100%",
         minHeight: 80,
         maxHeight: 120,
+        // textAlignVertical is Android-specific, ensures text starts at top for multiline input
         textAlignVertical: "top",
     },
 });

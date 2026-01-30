@@ -49,8 +49,11 @@ export default function SignIn({ setPassedAuth, settingPin }: { setPassedAuth: (
 
     return (
         <ThemedView style={[styles.container, { backgroundColor: theme === 'dark' ? Colors.dark.background : Colors.light.background }]}>
-            <ThemedView style={styles.content}>
-                <ThemedView style={[styles.iconContainer, { backgroundColor: theme === 'dark' ? Colors.dark.cardBackground : Colors.light.cardBackground }]}>
+            <ThemedView style={[styles.content, { backgroundColor: 'transparent' }]}>
+                <ThemedView style={[
+                    styles.iconContainer, 
+                    { backgroundColor: theme === 'dark' ? Colors.dark.cardBackground : Colors.light.cardBackground }
+                ]}>
                     <Feather name="lock" size={48} color={theme === 'dark' ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary} />
                 </ThemedView>
                 <ThemedText style={[styles.title, { color: theme === 'dark' ? Colors.dark.text : Colors.light.text }]}>
@@ -79,9 +82,7 @@ export default function SignIn({ setPassedAuth, settingPin }: { setPassedAuth: (
                 <TouchableOpacity
                     style={[
                         styles.button,
-                        {
-                            backgroundColor: theme === 'dark' ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary,
-                        }
+                        { backgroundColor: theme === 'dark' ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary }
                     ]}
                     activeOpacity={0.7}
                     onPress={isSettingPin ? handleSetPin : handleSignIn}
