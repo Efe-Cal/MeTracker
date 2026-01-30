@@ -1,7 +1,8 @@
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useContext } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
+import { Colors } from '@/constants/Colors';
 
 type FloatingPlusButtonProps = {
   onPress: () => void;
@@ -13,25 +14,31 @@ export function FloatingPlusButton({ onPress }: FloatingPlusButtonProps) {
     <TouchableOpacity
       style={{
         position: 'absolute',
-        right: 24,
-        bottom: 24,
-        backgroundColor: theme === "dark" ? "#4630EB" : "#4630EB",
-        borderRadius: 32,
+        right: 20,
+        bottom: 20,
+        backgroundColor: theme === "dark" ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary,
+        borderRadius: 28,
         width: 56,
         height: 56,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        zIndex: 10
+        zIndex: 10,
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+          },
+          android: {
+            elevation: 8,
+          },
+        }),
       }}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
-      <Ionicons name="add" size={32} color="white" />
+      <Ionicons name="add" size={28} color="white" />
     </TouchableOpacity>
   );
 }

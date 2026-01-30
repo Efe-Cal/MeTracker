@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
+import { Colors } from '@/constants/Colors';
 
 type NumberFieldProps = {
   label: string;
@@ -19,14 +20,14 @@ export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
 
   return (
     <View style={styles.container}>
-      <ThemedText style={[styles.label, { color: theme === "dark" ? "#fff" : "#222" }]}>{label}</ThemedText>
+      <ThemedText style={[styles.label, { color: theme === "dark" ? Colors.dark.text : Colors.light.text }]}>{label}</ThemedText>
       <TextInput
         style={[
           styles.input,
           {
-            backgroundColor: theme === "dark" ? "#222" : "#fff",
-            color: theme === "dark" ? "#fff" : "#222",
-            borderColor: theme === "dark" ? "#444" : "#ccc"
+            backgroundColor: theme === "dark" ? Colors.dark.inputBackground : Colors.light.inputBackground,
+            color: theme === "dark" ? Colors.dark.text : Colors.light.text,
+            borderColor: theme === "dark" ? Colors.dark.inputBorder : Colors.light.inputBorder,
           }
         ]}
         keyboardType="decimal-pad"
@@ -52,7 +53,7 @@ export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
           }
         }}
         placeholder="Enter number"
-        placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+        placeholderTextColor={theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary}
       />
     </View>
   );
@@ -60,7 +61,7 @@ export function NumberField({ label, value, onValueChange }: NumberFieldProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 6,
+    marginVertical: 8,
     width: "100%",
     justifyContent: "space-between",
     flexDirection: "row",
@@ -68,14 +69,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    marginBottom: 2
+    fontWeight: "500",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 6,
-    paddingHorizontal:8,
-    fontSize: 16
+    borderRadius: 8,
+    padding: 10,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    minWidth: 100,
   }
 });

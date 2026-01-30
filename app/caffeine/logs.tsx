@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import SubstanceDecayGraph from '@/components/SubstanceDecayGraph';
 import { useContext } from 'react';
 import { router } from 'expo-router';
@@ -10,6 +10,7 @@ import SubstanceLogCard from '@/components/SubstanceLogCard';
 import { useEffect } from 'react';
 import * as SQLite from 'expo-sqlite';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
 
 
 export default function Caffeine(){
@@ -43,12 +44,18 @@ export default function Caffeine(){
     return (
         <ThemedView style={[styles.container]}>
             <SubstanceDecayGraph intakes={intakes} halflife={4} theme={theme} substanceName='caffeine'/>
-            <ThemedText style={{marginTop:10}}>Intakes: </ThemedText>
-            {intakes.reverse().slice(0,11).map((intake) => {
-                return (
-                    <SubstanceLogCard key={intake.time} log={intake} substance='caffeine' substanceUnit='mg'/>
-                );
-            })}
+            <ThemedText style={[styles.sectionTitle, { color: theme === "dark" ? Colors.dark.text : Colors.light.text }]}>Recent Intakes</ThemedText>
+            <ScrollView 
+                style={styles.listContainer}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+            >
+                {intakes.reverse().slice(0,11).map((intake) => {
+                    return (
+                        <SubstanceLogCard key={intake.time} log={intake} substance='caffeine' substanceUnit='mg'/>
+                    );
+                })}
+            </ScrollView>
             <FloatingPlusButton onPress={() => router.navigate('/caffeine/add')} />
         </ThemedView>
     );
@@ -59,6 +66,20 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         justifyContent: "flex-start",
-        padding: 20
-    }
+        paddingHorizontal: 16,
+        paddingTop: 16,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        marginTop: 16,
+        marginBottom: 12,
+        letterSpacing: -0.3,
+    },
+    listContainer: {
+        flex: 1,
+    },
+    listContent: {
+        paddingBottom: 80,
+    },
 });

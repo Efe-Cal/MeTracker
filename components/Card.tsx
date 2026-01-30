@@ -1,8 +1,9 @@
-import { StyleProp, ViewStyle, Animated } from 'react-native';
+import { StyleProp, ViewStyle, Animated, Platform } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { useContext, useRef } from 'react';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { PanGestureHandler, HandlerStateChangeEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
+import { Colors } from '@/constants/Colors';
 
 interface CardProps {
   children: React.ReactNode;
@@ -46,6 +47,30 @@ export function Card({ children, style, onSwipe }: CardProps) {
     }
   };
 
+  const cardStyle = {
+    backgroundColor: theme === 'dark' ? Colors.dark.cardBackground : Colors.light.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 6,
+    marginHorizontal: 4,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+    borderWidth: 1,
+    borderColor: theme === 'dark' ? Colors.dark.cardBorder : Colors.light.cardBorder,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: theme === 'dark' ? 0.3 : 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  };
+
   if (onSwipe) {
     return (
       <PanGestureHandler
@@ -55,26 +80,7 @@ export function Card({ children, style, onSwipe }: CardProps) {
         activeOffsetX={[-20, 20]}
       >
         <Animated.View style={{ transform: [{ translateX }] }}>
-          <ThemedView
-            style={[
-              {
-                backgroundColor: theme === 'dark' ? '#27272a' : 'white',
-                borderRadius: 10,
-                padding: 10,
-                shadowColor: theme === 'dark' ? '#000' : 'black',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 10,
-                elevation: 5,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                margin: 5,
-                display: "flex"
-              },
-              style
-            ]}
-          >
+          <ThemedView style={[cardStyle, style]}>
             {children}
           </ThemedView>
         </Animated.View>
@@ -83,26 +89,7 @@ export function Card({ children, style, onSwipe }: CardProps) {
   }
 
   return (
-    <ThemedView
-      style={[
-        {
-          backgroundColor: theme === 'dark' ? '#27272a' : 'white',
-          borderRadius: 10,
-          padding: 10,
-          shadowColor: theme === 'dark' ? '#000' : 'black',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          elevation: 5,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          margin: 5,
-          display: "flex"
-        },
-        style
-      ]}
-    >
+    <ThemedView style={[cardStyle, style]}>
       {children}
     </ThemedView>
   );

@@ -1,4 +1,4 @@
-import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ScrollView, View, StyleSheet, TouchableOpacity, RefreshControl } from "react-native";
 import { Card } from "@/components/Card";
 import { useCallback, useContext } from "react";
 import * as SQLite from 'expo-sqlite';
@@ -10,6 +10,8 @@ import { FloatingPlusButton } from '@/components/FloatingPlusButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemeContext } from '@/theme/ThemeContext';
 import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
+import { Feather } from '@expo/vector-icons';
 
 export type Log = {
   time: string;
@@ -72,7 +74,9 @@ const LogCard = ({log}: {log: Log}) => {
 
 export default function Logs() {
   const [logs, setLogs] = useState([] as Log[]);
+  const [refreshing, setRefreshing] = useState(false);
   const { theme } = useContext(ThemeContext);
+  
   const fetchData = async () => {
     let db: SQLite.SQLiteDatabase | null = null;
     try {
@@ -86,6 +90,13 @@ export default function Logs() {
       db?.closeSync();
     }
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -94,17 +105,34 @@ export default function Logs() {
 
   return (
     <ThemedView style={[styles.container]}>
-      {/* <TouchableOpacity onPress={()=>fetchData()}><Text>Refresh</Text></TouchableOpacity> */}
-      {logs.length>0?
-      <ScrollView
-        showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
+      {logs.length > 0 ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme === "dark" ? Colors.dark.tint : Colors.light.tint}
+            />
+          }
         >
-        {logs.reverse().map((log, index) => (
-          <LogCard key={index} log={log} />
-        ))}
-      </ScrollView>
-      :<ThemedText>No Logs</ThemedText>}
+          {logs.reverse().map((log, index) => (
+            <LogCard key={index} log={log} />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyState}>
+          <Feather name="clipboard" size={64} color={theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary} />
+          <ThemedText style={[styles.emptyText, { color: theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary }]}>
+            No logs yet
+          </ThemedText>
+          <ThemedText style={[styles.emptySubtext, { color: theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary }]}>
+            Tap + to add your first log
+          </ThemedText>
+        </View>
+      )}
       
       <FloatingPlusButton onPress={() => router.navigate('/toilet/add')} />
     </ThemedView>
@@ -122,14 +150,17 @@ const styles = StyleSheet.create({
     margin: 5
   },
   cardDate: {
-    fontSize: 22,
-    fontWeight: "bold"
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: -0.3,
   },
   cardNotes: {
-    marginTop: 5
+    marginTop: 6,
+    fontSize: 14,
   },
   cardTime: {
-    fontSize: 16
+    fontSize: 15,
+    marginTop: 2,
   },
   colorBox: {
     borderRadius: 5,
@@ -141,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "flex-start",
-    padding: 15
+    padding: 16
   },
   icon: {
     alignSelf: "center",
@@ -158,8 +189,27 @@ const styles = StyleSheet.create({
     height: 120
   },
   scrollView: {
-    display: "flex",
     flex: 1,
     width: "100%"
-  }
+  },
+  scrollContent: {
+    paddingBottom: 80,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 20,
+    textAlign: "center",
+  },
+  emptySubtext: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
+  },
 });

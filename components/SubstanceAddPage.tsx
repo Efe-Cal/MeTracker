@@ -1,4 +1,4 @@
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useEffect, useState, useContext } from 'react';
 import * as SQLite from 'expo-sqlite';
 import { router } from 'expo-router';
@@ -8,6 +8,7 @@ import type { SubstanceItem } from '@/types';
 import { ThemedDropdown } from '@/components/ThemedDropdown';
 import { ThemedView } from './ThemedView';
 import { getIntakesTableName } from '@/utils/sanitizeForSQL';
+import { Colors } from '@/constants/Colors';
 
 export default function SubstanceAddPage({ substanceName }: { substanceName: string }) {
     const [value, setValue] = useState('');
@@ -44,34 +45,42 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
     return (
         <ThemedView style={[styles.container]}>
             {isLoading ? <ThemedText>Loading...</ThemedText>:(
-                <ThemedDropdown
-                    data={dropdownData}
-                    value={value}
-                    style={[
-                    styles.dropdown,
-                    {
-                        backgroundColor: theme === "dark" ? "#222" : "#fff",
-                        borderColor: theme === "dark" ? "#444" : "gray"
-                    }
-                    ]}
-                    labelField="label"
-                    valueField="value"
-                    onChange={item =>{
-                        setValue(item.value)
-                        if(item.value === 'create'){
-                            setShowCreate(true);
-                            setShowAdd(false);
+                <View>
+                    <ThemedText style={{ fontSize: 16, fontWeight: "500", marginBottom: 8, color: theme === "dark" ? Colors.dark.text : Colors.light.text }}>
+                        Select or Create Item
+                    </ThemedText>
+                    <ThemedDropdown
+                        data={dropdownData}
+                        value={value}
+                        style={[
+                        styles.dropdown,
+                        {
+                            backgroundColor: theme === "dark" ? Colors.dark.inputBackground : Colors.light.inputBackground,
+                            borderColor: theme === "dark" ? Colors.dark.inputBorder : Colors.light.inputBorder,
                         }
-                        else{
-                            setShowAdd(true);
-                            setShowCreate(false);
-                            setSelectedItem({name: item.label, amount: parseInt(item.value.split(";")[1])});
-                        }
-                    }}
-                />
+                        ]}
+                        labelField="label"
+                        valueField="value"
+                        onChange={item =>{
+                            setValue(item.value)
+                            if(item.value === 'create'){
+                                setShowCreate(true);
+                                setShowAdd(false);
+                            }
+                            else{
+                                setShowAdd(true);
+                                setShowCreate(false);
+                                setSelectedItem({name: item.label, amount: parseInt(item.value.split(";")[1])});
+                            }
+                        }}
+                    />
+                </View>
             )}
             {showCreate && 
             <View style={styles.createView}>
+                <ThemedText style={{ fontSize: 16, fontWeight: "500", marginBottom: 8, color: theme === "dark" ? Colors.dark.text : Colors.light.text }}>
+                    Create New Item
+                </ThemedText>
                 <TextInput 
                     placeholder="Name"
                     value={name}
@@ -79,12 +88,12 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                     style={[
                       styles.input,
                       {
-                        backgroundColor: theme === "dark" ? "#222" : "#fff",
-                        color: theme === "dark" ? "#fff" : "#222",
-                        borderColor: theme === "dark" ? "#444" : "#ccc"
+                        backgroundColor: theme === "dark" ? Colors.dark.inputBackground : Colors.light.inputBackground,
+                        color: theme === "dark" ? Colors.dark.text : Colors.light.text,
+                        borderColor: theme === "dark" ? Colors.dark.inputBorder : Colors.light.inputBorder,
                       }
                     ]}
-                    placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                    placeholderTextColor={theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary}
                 />
                 <TextInput 
                     placeholder="Amount (mg)"
@@ -94,14 +103,16 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                     style={[
                       styles.input,
                       {
-                        backgroundColor: theme === "dark" ? "#222" : "#fff",
-                        color: theme === "dark" ? "#fff" : "#222",
-                        borderColor: theme === "dark" ? "#444" : "#ccc"
+                        backgroundColor: theme === "dark" ? Colors.dark.inputBackground : Colors.light.inputBackground,
+                        color: theme === "dark" ? Colors.dark.text : Colors.light.text,
+                        borderColor: theme === "dark" ? Colors.dark.inputBorder : Colors.light.inputBorder,
                       }
                     ]}
-                    placeholderTextColor={theme === "dark" ? "#888" : "#aaa"}
+                    placeholderTextColor={theme === "dark" ? Colors.dark.textSecondary : Colors.light.textSecondary}
                 />
-                <TouchableOpacity style={styles.saveButton}
+                <TouchableOpacity 
+                    style={[styles.saveButton, { backgroundColor: theme === "dark" ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary }]}
+                    activeOpacity={0.7}
                     onPress={async () => {
                         const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
                         await db.runAsync('INSERT INTO substance_items (name, amount, substance) VALUES (?, ?, ?)', [name, parseInt(amount), substanceName]);
@@ -113,13 +124,15 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                         setSelectedItem({name, amount: parseInt(amount)});
                         setShowAdd(true);
                 }}>
-                    <ThemedText style={styles.saveButtonText}>Save</ThemedText>
+                    <ThemedText style={styles.saveButtonText}>Save Item</ThemedText>
                 </TouchableOpacity>
             </View>
             }
             {showAdd &&
             <View style={styles.addView}>
-                <TouchableOpacity style={styles.addButton}
+                <TouchableOpacity 
+                    style={[styles.addButton, { backgroundColor: theme === "dark" ? Colors.dark.buttonPrimary : Colors.light.buttonPrimary }]}
+                    activeOpacity={0.7}
                     onPress={ async () => {
                         if(selectedItem){
                             const db = await SQLite.openDatabaseAsync('MeTracker.db', { useNewConnection: true });
@@ -134,7 +147,7 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
                             }
                         }
                 }}>
-                    <ThemedText style={styles.saveButtonText}>Add</ThemedText>
+                    <ThemedText style={styles.saveButtonText}>Add Intake</ThemedText>
                 </TouchableOpacity>
             </View>
             }
@@ -146,14 +159,26 @@ export default function SubstanceAddPage({ substanceName }: { substanceName: str
 const styles = StyleSheet.create({
     addButton: {
         alignItems: "center",
-        backgroundColor: "#4630EB",
-        borderRadius: 10,
-        marginTop: 10,
-        padding: 10,
-        width: "100%"
+        backgroundColor: Colors.light.buttonPrimary,
+        borderRadius: 12,
+        marginTop: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        width: "100%",
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+          },
+          android: {
+            elevation: 3,
+          },
+        }),
     },
     addView: {
-        marginTop: 20
+        marginTop: 24
     },
     container: {
         flex: 1,
@@ -162,35 +187,45 @@ const styles = StyleSheet.create({
         padding: 20
     },
     createView: {
-        flex: 1,
-        marginTop: 20
+        marginTop: 24
     },
     dropdown: {
-        borderColor: 'gray',
-        borderRadius: 5,
+        borderRadius: 8,
         borderWidth: 1,
-        height: 50,
-        paddingHorizontal: 10
+        height: 52,
+        paddingHorizontal: 12
     },
     input: {
         borderWidth: 1,
-        marginTop: 10,
-        padding: 5,
-        borderRadius: 6
+        marginTop: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        fontSize: 16,
     },
     saveButton: {
         alignItems: "center",
-        backgroundColor: "#4630EB",
-        borderRadius: 10,
-        bottom: 0,
-        marginTop: 10,
-        padding: 10,
-        position: "absolute",
-        width: "100%"
+        backgroundColor: Colors.light.buttonPrimary,
+        borderRadius: 12,
+        marginTop: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        width: "100%",
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+          },
+          android: {
+            elevation: 3,
+          },
+        }),
     },
     saveButtonText: {
         color: "white",
-        fontSize: 20,
-        fontWeight: "bold"
+        fontSize: 16,
+        fontWeight: "600"
     }
 });
