@@ -3,6 +3,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import * as SQLite from 'expo-sqlite/next';
 import { ThemeContext } from '@/theme/ThemeContext';
 import ThemedDropdown from './ThemedDropdown';
+import { Colors } from '@/constants/Colors';
 
 type SelectFieldProps = {
     label: string;
@@ -37,14 +38,14 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, trackerID, fieldName, 
         <View style={styles.container}>
             {label && <Text style={[
                 styles.label,
-                { color: theme === "dark" ? "#fff" : "#333" }
+                { color: theme === "dark" ? Colors.dark.text : Colors.light.text }
             ]}>{label}</Text>}
             <ThemedDropdown
                 style={[
                     styles.dropdown,
                     {
-                        backgroundColor: theme === "dark" ? "#222" : "#fff",
-                        borderColor: theme === "dark" ? "#444" : "#ccc"
+                        backgroundColor: theme === "dark" ? Colors.dark.inputBackground : Colors.light.inputBackground,
+                        borderColor: theme === "dark" ? Colors.dark.inputBorder : Colors.light.inputBorder,
                     }
                 ]}
                 data={data}
@@ -66,16 +67,15 @@ const styles = StyleSheet.create({
         marginVertical: 8,
     },
     label: {
-        marginBottom: 4,
+        marginBottom: 8,
         fontSize: 16,
-        // color is themed
+        fontWeight: "500",
     },
     dropdown: {
-        height: 48,
+        height: 52,
         borderWidth: 1,
         borderRadius: 8,
         paddingHorizontal: 12,
-        // backgroundColor and borderColor are themed
     },
 });
 
