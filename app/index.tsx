@@ -1,4 +1,4 @@
-import { Button, ScrollView, StyleSheet, TouchableOpacity, Text, View, Pressable } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View, Pressable } from "react-native";
 import { Href, Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useState } from "react";
 import * as SQLite from 'expo-sqlite';
@@ -6,8 +6,6 @@ import { ThemeContext } from "@/theme/ThemeContext";
 import { Card } from "@/components/Card";
 import { ThemedText } from "@/components/ThemedText";
 import SignIn from "@/components/SignIn";
-import { useEffect } from "react";
-import { useNavigation } from "expo-router";
 import { Feather } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
 

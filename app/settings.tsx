@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { View, StyleSheet, Switch, TextInput, Touchable, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Switch, TextInput, TouchableOpacity } from "react-native";
 import { ThemeContext } from "@/theme/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
